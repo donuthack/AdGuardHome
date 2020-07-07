@@ -6,15 +6,18 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import {
     renderInputField,
-    required,
-    ipv4,
-    isPositive,
     toNumber,
-    ipv6,
-    renderSelectField, validateIpv4RangeEnd,
+    renderSelectField,
 } from '../../../helpers/form';
 import { resetDhcp } from '../../../actions';
 import { FORM_NAME, maxIPv6 } from '../../../helpers/constants';
+import {
+    validateIpv4,
+    validateIpv6,
+    validateIsPositiveValue,
+    validateRequiredValue,
+    validateIpv4RangeEnd,
+} from '../../../helpers/validators';
 
 const renderInterfaces = ((interfaces) => (
     Object.keys(interfaces)
@@ -98,11 +101,11 @@ const Form = (props) => {
     const enteredSomeV6Vale = Object.values(v6)
         .some(Boolean);
 
-    const requiredV4 = enteredSomeV4Vale ? required : [];
-    const requiredV6 = enteredSomeV6Vale ? required : [];
+    const requiredV4 = enteredSomeV4Vale ? validateRequiredValue : [];
+    const requiredV6 = enteredSomeV6Vale ? validateRequiredValue : [];
 
-    const requiredV4StartRange = enteredSomeV4Vale && !v6.range_start ? required : [];
-    const requiredV6StartRange = enteredSomeV6Vale && !v4.range_start ? required : [];
+    const requiredV4StartRange = enteredSomeV4Vale && !v6.range_start ? validateRequiredValue : [];
+    const requiredV6StartRange = enteredSomeV6Vale && !v4.range_start ? validateRequiredValue : [];
 
     return (
         <form onSubmit={handleSubmit}>
@@ -114,7 +117,7 @@ const Form = (props) => {
                             name="interface_name"
                             component={renderSelectField}
                             className="form-control custom-select"
-                            validate={[required]}
+                            validate={[validateRequiredValue]}
                             label='dhcp_interface_select'
                         >
                             <option value="" disabled={enabled}>
@@ -141,7 +144,7 @@ const Form = (props) => {
                             type="text"
                             className="form-control"
                             placeholder={t('dhcp_form_gateway_input')}
-                            validate={[ipv4].concat(requiredV4)}
+                            validate={[validateIpv4].concat(requiredV4)}
                         />
                     </div>
                     <div className="form__group form__group--settings">
@@ -152,7 +155,7 @@ const Form = (props) => {
                             type="text"
                             className="form-control"
                             placeholder={t('dhcp_form_subnet_input')}
-                            validate={[ipv4].concat(requiredV4)}
+                            validate={[validateIpv4].concat(requiredV4)}
                         />
                     </div>
                 </div>
@@ -169,7 +172,7 @@ const Form = (props) => {
                                     type="text"
                                     className="form-control"
                                     placeholder={t('dhcp_form_range_start')}
-                                    validate={[ipv4].concat(requiredV4StartRange)}
+                                    validate={[validateIpv4].concat(requiredV4StartRange)}
                                 />
                             </div>
                             <div className="col">
@@ -192,7 +195,7 @@ const Form = (props) => {
                             type="number"
                             className="form-control"
                             placeholder={t('dhcp_form_lease_input')}
-                            validate={[isPositive].concat(requiredV4)}
+                            validate={[validateIsPositiveValue].concat(validateRequiredValue)}
                             normalize={toNumber}
                             min={0}
                         />
@@ -220,7 +223,7 @@ const Form = (props) => {
                                 type="text"
                                 className="form-control"
                                 placeholder={t('dhcp_form_range_start')}
-                                validate={[ipv6].concat(requiredV6StartRange)}
+                                validate={[validateIpv6].concat(requiredV6StartRange)}
                             />
                         </div>
                         <div className="col">
@@ -244,7 +247,7 @@ const Form = (props) => {
                         type="number"
                         className="form-control"
                         placeholder={t('dhcp_form_lease_input')}
-                        validate={[isPositive].concat(requiredV6)}
+                        validate={[validateIsPositiveValue].concat(requiredV6)}
                         normalizeOnBlur={toNumber}
                         min={0}
                     />

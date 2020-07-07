@@ -12,6 +12,7 @@ import {
     FILTERED_STATUS_TO_META_MAP,
     TABLE_DEFAULT_PAGE_SIZE,
     SCHEME_TO_PROTOCOL_MAP,
+    CUSTOM_FILTERING_RULES_ID,
 } from '../../helpers/constants';
 import getDateCell from './Cells/getDateCell';
 import getDomainCell from './Cells/getDomainCell';
@@ -19,6 +20,7 @@ import getClientCell from './Cells/getClientCell';
 import getResponseCell from './Cells/getResponseCell';
 
 import {
+    captitalizeWords,
     checkFiltered,
     formatDateTime,
     formatElapsedMs,
@@ -26,6 +28,7 @@ import {
 
 } from '../../helpers/helpers';
 import Loading from '../ui/Loading';
+import { getSourceData } from '../../helpers/trackers/trackers';
 
 const Table = (props) => {
     const {
@@ -83,6 +86,27 @@ const Table = (props) => {
         getFilteringStatus();
     };
 
+    const getFilterName = (filters, whitelistFilters, filterId, t) => {
+        if (filterId === CUSTOM_FILTERING_RULES_ID) {
+            return t('custom_filter_rules');
+        }
+
+        const filter = filters.find((filter) => filter.id === filterId)
+            || whitelistFilters.find((filter) => filter.id === filterId);
+        let filterName = '';
+
+        if (filter) {
+            filterName = filter.name;
+        }
+
+        if (!filterName) {
+            filterName = t('unknown_filter', { filterId });
+        }
+
+        return filterName;
+    };
+
+
     const columns = [
         {
             Header: t('time_table_header'),
@@ -123,6 +147,7 @@ const Table = (props) => {
                 filtering,
                 t,
                 isDetailed,
+                getFilterName,
             ),
             minWidth: 150,
             maxHeight: 60,
@@ -178,6 +203,7 @@ const Table = (props) => {
             minWidth: 123,
             maxHeight: 60,
             headerClassName: 'logs__text',
+            className: 'pb-0',
         },
     ];
 
@@ -273,24 +299,20 @@ const Table = (props) => {
                             upstream,
                             type,
                             client_proto,
+                            filterId,
                         } = rowInfo.original;
 
                         const hasTracker = !!tracker;
 
-                        const autoClient = autoClients.find(
-                            (autoClient) => autoClient.name === client,
-                        );
+                        const autoClient = autoClients
+                            .find((autoClient) => autoClient.name === client);
 
-                        const country = autoClient && autoClient.whois_info
-                            && autoClient.whois_info.country;
+                        const { whois_info } = info;
+                        const country = whois_info?.country;
+                        const city = whois_info?.city;
+                        const network = whois_info?.orgname;
 
-                        const network = autoClient && autoClient.whois_info
-                            && autoClient.whois_info.orgname;
-
-                        const city = autoClient && autoClient.whois_info
-                            && autoClient.whois_info.city;
-
-                        const source = autoClient && autoClient.source;
+                        const source = autoClient?.source;
 
                         const formattedElapsedMs = formatElapsedMs(elapsedMs, t);
                         const isFiltered = checkFiltered(reason);
@@ -300,14 +322,12 @@ const Table = (props) => {
                             toggleBlocking(buttonType, domain);
                         };
 
-                        const tracker_source = tracker && tracker.sourceData
-                            && tracker.sourceData.name;
-
-                        const status = t((FILTERED_STATUS_TO_META_MAP[reason]
-                            && FILTERED_STATUS_TO_META_MAP[reason].label) || reason);
+                        const status = t(FILTERED_STATUS_TO_META_MAP[reason]?.label || reason);
                         const statusBlocked = <div className="bg--danger">{status}</div>;
 
                         const protocol = t(SCHEME_TO_PROTOCOL_MAP[client_proto]) || '';
+
+                        const sourceData = getSourceData(tracker);
 
                         const detailedData = {
                             time_table_header: formatTime(time, LONG_TIME_FORMAT),
@@ -317,25 +337,30 @@ const Table = (props) => {
                             type_table_header: type,
                             protocol,
                             known_tracker: hasTracker && 'title',
-                            table_name: hasTracker && tracker.name,
-                            category_label: hasTracker && tracker.category,
-                            tracker_source: hasTracker && tracker_source && <a href={`//${source}`}
-                                                                               className="link--green">{tracker_source}</a>,
+                            table_name: tracker?.name,
+                            category_label: hasTracker && captitalizeWords(tracker.category),
+                            tracker_source: hasTracker && sourceData
+                                && <a href={sourceData.url} target="_blank" rel="noopener noreferrer"
+                                   className="link--green">{sourceData.name}</a>,
                             response_details: 'title',
                             install_settings_dns: upstream,
                             elapsed: formattedElapsedMs,
-                            response_table_header: response && response.join('\n'),
+                            response_table_header: response?.join('\n'),
                             client_details: 'title',
                             ip_address: client,
-                            name: info && info.name,
+                            name: info?.name,
                             country,
                             city,
                             network,
                             source_label: source,
                             validated_with_dnssec: dnssec_enabled ? Boolean(answer_dnssec) : false,
                             [buttonType]: <div onClick={onToggleBlock}
-                                               className="title--border bg--danger">{t(buttonType)}</div>,
+                                               className="title--border bg--danger text-center">{t(buttonType)}</div>,
                         };
+
+                        const { filters, whitelistFilters } = filtering;
+
+                        const filter = getFilterName(filters, whitelistFilters, filterId, t);
 
                         const detailedDataBlocked = {
                             time_table_header: formatTime(time, LONG_TIME_FORMAT),
@@ -345,16 +370,18 @@ const Table = (props) => {
                             type_table_header: type,
                             protocol,
                             known_tracker: 'title',
-                            table_name: hasTracker && tracker.name,
-                            category_label: hasTracker && tracker.category,
-                            source_label: hasTracker && source
-                                && <a href={`//${source}`} className="link--green">{source}</a>,
+                            table_name: tracker?.name,
+                            category_label: hasTracker && captitalizeWords(tracker.category),
+                            source_label: hasTracker && sourceData
+                                && <a href={sourceData.url} target="_blank" rel="noopener noreferrer"
+                                   className="link--green">{sourceData.name}</a>,
                             response_details: 'title',
                             install_settings_dns: upstream,
                             elapsed: formattedElapsedMs,
-                            response_table_header: response && response.join('\n'),
+                            filter,
+                            response_table_header: response?.join('\n'),
                             [buttonType]: <div onClick={onToggleBlock}
-                                               className="title--border">{t(buttonType)}</div>,
+                                               className="title--border text-center">{t(buttonType)}</div>,
                         };
 
                         const detailedDataCurrent = isFiltered ? detailedDataBlocked : detailedData;

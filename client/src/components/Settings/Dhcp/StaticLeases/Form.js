@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import { Field, reduxForm } from 'redux-form';
 import { Trans, useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import {
-    renderInputField, ipv4, mac, required,
-} from '../../../../helpers/form';
+import { renderInputField } from '../../../../helpers/form';
+import { validateIpv4, validateMac, validateRequiredValue } from '../../../../helpers/validators';
 import { FORM_NAME } from '../../../../helpers/constants';
 import { toggleLeaseModal } from '../../../../actions';
 
@@ -16,7 +15,7 @@ const Form = ({
     submitting,
     processingAdding,
 }) => {
-    const [t] = useTranslation();
+    const { t } = useTranslation();
     const dispatch = useDispatch();
 
     const onClick = () => {
@@ -35,7 +34,7 @@ const Form = ({
                         type="text"
                         className="form-control"
                         placeholder={t('form_enter_mac')}
-                        validate={[required, mac]}
+                        validate={[validateRequiredValue, validateMac]}
                     />
                 </div>
                 <div className="form__group">
@@ -46,7 +45,7 @@ const Form = ({
                         type="text"
                         className="form-control"
                         placeholder={t('form_enter_ip')}
-                        validate={[required, ipv4]}
+                        validate={[validateRequiredValue, validateIpv4]}
                     />
                 </div>
                 <div className="form__group">

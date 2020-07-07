@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { normalizeWhois } from './helpers';
 import { WHOIS_ICONS } from './constants';
 
@@ -11,12 +11,12 @@ const getFormattedWhois = (whois, t) => {
                 return (
                     <span className="logs__whois text-muted" key={key} title={t(key)}>
                     {icon && (
-                        <Fragment>
+                        <>
                             <svg className="logs__whois-icon icons">
                                 <use xlinkHref={`#${icon}`} />
                             </svg>
                             &nbsp;
-                        </Fragment>
+                        </>
                     )}{whoisInfo[key]}
                 </span>
                 );
@@ -36,7 +36,9 @@ export const formatClientCell = (row, t, isDetailed = false) => {
             nameContainer = isDetailed
                 ? <small title={value}>{value}</small>
                 : <div className="logs__text logs__text--nowrap" title={`${name} (${value})`}>
-                    {name}<small>{`(${value})`}</small>
+                    {name}
+                    {' '}
+                    <small>{`(${value})`}</small>
                 </div>;
         }
 

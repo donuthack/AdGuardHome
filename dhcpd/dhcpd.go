@@ -64,7 +64,7 @@ type Server struct {
 	conf ServerConfig
 
 	// Called when the leases DB is modified
-	onLeaseChanged onLeaseChangedT
+	onLeaseChanged []onLeaseChangedT
 }
 
 // CheckConfig checks the configuration
@@ -132,14 +132,16 @@ func (s *Server) onNotify(flags uint32) {
 
 // SetOnLeaseChanged - set callback
 func (s *Server) SetOnLeaseChanged(onLeaseChanged onLeaseChangedT) {
-	s.onLeaseChanged = onLeaseChanged
+	s.onLeaseChanged = append(s.onLeaseChanged, onLeaseChanged)
 }
 
 func (s *Server) notify(flags int) {
-	if s.onLeaseChanged == nil {
+	if len(s.onLeaseChanged) == 0 {
 		return
 	}
-	s.onLeaseChanged(flags)
+	for _, f := range s.onLeaseChanged {
+		f(flags)
+	}
 }
 
 // WriteDiskConfig - write configuration

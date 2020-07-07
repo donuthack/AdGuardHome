@@ -21,7 +21,7 @@ import {
 } from '../../../actions';
 
 const Dhcp = () => {
-    const [t] = useTranslation();
+    const { t } = useTranslation();
     const dispatch = useDispatch();
     const dhcp = useSelector((store) => store.dhcp, shallowEqual);
     const {
@@ -88,7 +88,7 @@ const Dhcp = () => {
     };
 
     const getToggleDhcpButton = () => {
-        const otherDhcpFound = check && check.otherServer
+        const otherDhcpFound = check?.otherServer
             && check.otherServer.found === DHCP_STATUS_RESPONSE.YES;
 
         const filledConfig = interface_name && (Object.keys(v4)

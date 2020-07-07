@@ -1,16 +1,13 @@
 import React, { Fragment } from 'react';
-import { Trans } from 'react-i18next';
 import PropTypes from 'prop-types';
-import {
-    R_IPV4, R_MAC, R_HOST, R_IPV6, R_CIDR, R_CIDR_IPV6,
-    UNSAFE_PORTS, R_URL_REQUIRES_PROTOCOL, R_WIN_ABSOLUTE_PATH, R_UNIX_ABSOLUTE_PATH,
-} from './constants';
+import { Trans } from 'react-i18next';
 import { createOnBlurHandler } from './helpers';
+import { R_UNIX_ABSOLUTE_PATH, R_WIN_ABSOLUTE_PATH } from './constants';
 
 export const renderField = (props, elementType) => {
     const {
         input, id, className, placeholder, type, disabled, normalizeOnBlur,
-        autoComplete, meta: { touched, error }, min,
+        autoComplete, meta: { touched, error }, min, max, step,
     } = props;
 
     const onBlur = (event) => createOnBlurHandler(event, input, normalizeOnBlur);
@@ -23,8 +20,10 @@ export const renderField = (props, elementType) => {
         autoComplete,
         disabled,
         type,
-        onBlur,
         min,
+        max,
+        step,
+        onBlur,
     });
 
     return (
@@ -45,7 +44,9 @@ renderField.propTypes = {
     disabled: PropTypes.bool,
     autoComplete: PropTypes.bool,
     normalizeOnBlur: PropTypes.func,
-    min: PropTypes.num,
+    min: PropTypes.number,
+    max: PropTypes.number,
+    step: PropTypes.number,
     meta: PropTypes.shape({
         touched: PropTypes.bool,
         error: PropTypes.string,
@@ -138,8 +139,8 @@ export const renderRadioField = ({
     </label>
     {!disabled
     && touched
-    && (error
-        && <span className="form__message form__message--error"><Trans>{error}</Trans></span>)}
+    && error
+    && <span className="form__message form__message--error"><Trans>{error}</Trans></span>}
 </Fragment>;
 
 renderRadioField.propTypes = {
@@ -160,25 +161,29 @@ export const renderCheckboxField = ({
     disabled,
     onClick,
     modifier = 'checkbox--form',
+    checked,
     meta: { touched, error },
 }) => <>
     <label className={`checkbox ${modifier}`} onClick={onClick}>
         <span className="checkbox__marker" />
-        <input {...input} type="checkbox" className="checkbox__input" disabled={disabled} />
+        <input {...input} type="checkbox" className="checkbox__input" disabled={disabled}
+               checked={input.checked || checked} />
         <span className="checkbox__label">
-                    <span className="checkbox__label-text checkbox__label-text--long">
-                        <span className="checkbox__label-title">{placeholder}</span>
-                        {subtitle && <span
-                            className="checkbox__label-subtitle"
-                            dangerouslySetInnerHTML={{ __html: subtitle }}
-                        />}
+                        <span className="checkbox__label-text checkbox__label-text--long">
+                            <span className="checkbox__label-title">{placeholder}</span>
+                            {subtitle
+                            && <span
+                                className="checkbox__label-subtitle"
+                                dangerouslySetInnerHTML={{ __html: subtitle }}
+
+                            />}
+                        </span>
                     </span>
-                </span>
     </label>
     {!disabled
     && touched
-    && (error
-        && <span className="form__message form__message--error"><Trans>{error}</Trans></span>)}
+    && error
+    && <span className="form__message form__message--error"><Trans>{error}</Trans></span>}
 </>;
 
 renderCheckboxField.propTypes = {
@@ -188,6 +193,7 @@ renderCheckboxField.propTypes = {
     disabled: PropTypes.bool,
     onClick: PropTypes.func,
     modifier: PropTypes.string,
+    checked: PropTypes.bool,
     meta: PropTypes.shape({
         touched: PropTypes.bool,
         error: PropTypes.string,
@@ -265,151 +271,15 @@ renderServiceField.propTypes = {
 
 export const getLastIpv4Octet = (ipv4) => parseInt(ipv4.slice(ipv4.lastIndexOf('.') + 1), 10);
 
-// Validation functions
-// If the value is valid, the validation function should return undefined.
-// https://redux-form.com/8.2.2/examples/fieldlevelvalidation/
-export const required = (value) => {
-    const formattedValue = typeof value === 'string' ? value.trim() : value;
-    if (formattedValue || formattedValue === 0 || (formattedValue && formattedValue.length !== 0)) {
-        return undefined;
-    }
-    return 'form_error_required';
-};
+/**
+ * @param value {string}
+ * @returns {*|number}
+ */
+export const toNumber = (value) => value && parseInt(value, 10);
 
-export const ipv4 = (value) => {
-    if (value && !R_IPV4.test(value)) {
-        return 'form_error_ip4_format';
-    }
-    return undefined;
-};
-
-export const validateIpv4RangeEnd = (_, allValues) => {
-    if (!allValues || !allValues.v4
-        || !allValues.v4.range_end || !allValues.v4.range_start) {
-        return undefined;
-    }
-
-    const { range_end, range_start } = allValues.v4;
-
-    if (range_end <= getLastIpv4Octet(range_start)) {
-        return 'range_end_error';
-    }
-
-    return undefined;
-};
-
-export const clientId = (value) => {
-    if (!value) {
-        return undefined;
-    }
-    const formattedValue = value ? value.trim() : value;
-    if (formattedValue && !(
-        R_IPV4.test(formattedValue)
-        || R_IPV6.test(formattedValue)
-        || R_MAC.test(formattedValue)
-        || R_CIDR.test(formattedValue)
-        || R_CIDR_IPV6.test(formattedValue)
-    )) {
-        return 'form_error_client_id_format';
-    }
-    return undefined;
-};
-
-export const ipv6 = (value) => {
-    if (value && !R_IPV6.test(value)) {
-        return 'form_error_ip6_format';
-    }
-    return undefined;
-};
-
-export const ip = (value) => {
-    if (value && !R_IPV4.test(value) && !R_IPV6.test(value)) {
-        return 'form_error_ip_format';
-    }
-    return undefined;
-};
-
-export const mac = (value) => {
-    if (value && !R_MAC.test(value)) {
-        return 'form_error_mac_format';
-    }
-    return undefined;
-};
-
-export const isPositive = (value) => {
-    if ((value || value === 0) && value <= 0) {
-        return 'form_error_positive';
-    }
-    return undefined;
-};
-
-export const biggerOrEqualZero = (value) => {
-    if (value < 0) {
-        return 'form_error_negative';
-    }
-    return false;
-};
-
-export const port = (value) => {
-    if ((value || value === 0) && (value < 80 || value > 65535)) {
-        return 'form_error_port_range';
-    }
-    return undefined;
-};
-
-export const validInstallPort = (value) => {
-    if (value < 1 || value > 65535) {
-        return 'form_error_port';
-    }
-    return undefined;
-};
-
-export const portTLS = (value) => {
-    if (value === 0) {
-        return undefined;
-    }
-    if (value && (value < 80 || value > 65535)) {
-        return 'form_error_port_range';
-    }
-    return undefined;
-};
-
-export const isSafePort = (value) => {
-    if (UNSAFE_PORTS.includes(value)) {
-        return 'form_error_port_unsafe';
-    }
-    return undefined;
-};
-
-export const domain = (value) => {
-    if (value && !R_HOST.test(value)) {
-        return 'form_error_domain_format';
-    }
-    return undefined;
-};
-
-export const answer = (value) => {
-    if (value && (!R_IPV4.test(value) && !R_IPV6.test(value) && !R_HOST.test(value))) {
-        return 'form_error_answer_format';
-    }
-    return undefined;
-};
-
-export const isValidUrl = (value) => {
-    if (value && !R_URL_REQUIRES_PROTOCOL.test(value)) {
-        return 'form_error_url_format';
-    }
-    return undefined;
-};
-
+/**
+ * @param value {string}
+ * @returns {boolean}
+ */
 export const isValidAbsolutePath = (value) => R_WIN_ABSOLUTE_PATH.test(value)
     || R_UNIX_ABSOLUTE_PATH.test(value);
-
-export const isValidPath = (value) => {
-    if (value && !isValidAbsolutePath(value) && !R_URL_REQUIRES_PROTOCOL.test(value)) {
-        return 'form_error_url_or_path_format';
-    }
-    return undefined;
-};
-
-export const toNumber = (value) => value && parseInt(value, 10);
