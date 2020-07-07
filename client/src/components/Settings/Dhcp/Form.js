@@ -96,16 +96,16 @@ const Form = (props) => {
 
     const invalid = syncErrors && (syncErrors.interface_name || (syncErrors.v4 && syncErrors.v6));
 
-    const enteredSomeV4Vale = Object.values(v4)
+    const enteredSomeV4Value = Object.values(v4)
         .some(Boolean);
-    const enteredSomeV6Vale = Object.values(v6)
+    const enteredSomeV6Value = Object.values(v6)
         .some(Boolean);
 
-    const requiredV4 = enteredSomeV4Vale ? validateRequiredValue : [];
-    const requiredV6 = enteredSomeV6Vale ? validateRequiredValue : [];
+    const requiredV4 = enteredSomeV4Value ? validateRequiredValue : [];
+    const requiredV6 = enteredSomeV6Value ? validateRequiredValue : [];
 
-    const requiredV4StartRange = enteredSomeV4Vale && !v6.range_start ? validateRequiredValue : [];
-    const requiredV6StartRange = enteredSomeV6Vale && !v4.range_start ? validateRequiredValue : [];
+    const requiredV4StartRange = enteredSomeV4Value && !v6.range_start ? validateRequiredValue : [];
+    const requiredV6StartRange = enteredSomeV6Value && !v4.range_start ? validateRequiredValue : [];
 
     return (
         <form onSubmit={handleSubmit}>
@@ -182,7 +182,8 @@ const Form = (props) => {
                                     type="text"
                                     className="form-control"
                                     placeholder={t('last_octet')}
-                                    validate={[validateIpv4RangeEnd].concat(requiredV4)}
+                                    validate={[validateIpv4, validateIpv4RangeEnd]
+                                        .concat(requiredV4)}
                                 />
                             </div>
                         </div>
@@ -195,7 +196,7 @@ const Form = (props) => {
                             type="number"
                             className="form-control"
                             placeholder={t('dhcp_form_lease_input')}
-                            validate={[validateIsPositiveValue].concat(validateRequiredValue)}
+                            validate={[validateIsPositiveValue].concat(requiredV4)}
                             normalize={toNumber}
                             min={0}
                         />

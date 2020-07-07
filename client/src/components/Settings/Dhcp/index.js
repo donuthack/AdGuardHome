@@ -52,26 +52,26 @@ const Dhcp = () => {
         dispatch(getDhcpInterfaces());
     }, []);
 
-    const handleFormSubmit = (values) => {
-        const {
-            enabled, interface_name, v4, v6,
-        } = values;
+    const handleFormSubmit = ({
+        enabled, interface_name, v4, v6,
+    }) => {
+        if (!Object.values(v4)
+            .some(Boolean)) {
+            // eslint-disable-next-line no-param-reassign
+            v4 = {};
+        }
 
-        const v4configChanged = Object.values(v4)
-            .some(Boolean);
-        const v6configChanged = Object.values(v6)
-            .some(Boolean);
-
-        if (v4configChanged && v4.range_start && v4.range_end) {
-            const lastOctetIdx = v4.range_start.lastIndexOf('.');
-            v4.range_end = v4.range_start.slice(0, lastOctetIdx + 1) + v4.range_end;
+        if (!Object.values(v6)
+            .some(Boolean)) {
+            // eslint-disable-next-line no-param-reassign
+            v6 = {};
         }
 
         dispatch(setDhcpConfig({
             enabled,
             interface_name,
-            v4: v4configChanged ? v4 : {},
-            v6: v6configChanged ? v6 : {},
+            v4,
+            v6,
         }));
     };
 
@@ -258,7 +258,7 @@ const Dhcp = () => {
         <>
             <PageTitle title={t('dhcp_settings')} subtitle={t('dhcp_description')}>
                 <div className="page-title__actions">
-                    {<div className="card-actions mb-3">
+                    <div className="card-actions mb-3">
                         {getToggleDhcpButton()}
                         <button
                             type="button"
@@ -268,7 +268,7 @@ const Dhcp = () => {
                         >
                             <Trans>check_dhcp_servers</Trans>
                         </button>
-                    </div>}
+                    </div>
                 </div>
             </PageTitle>
             {!processing && !processingInterfaces && (

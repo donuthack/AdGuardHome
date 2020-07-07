@@ -50,7 +50,7 @@ export const validateIpv4RangeEnd = (_, allValues) => {
 
     const { range_end, range_start } = allValues.v4;
 
-    if (range_end <= getLastIpv4Octet(range_start)) {
+    if (getLastIpv4Octet(range_end) <= getLastIpv4Octet(range_start)) {
         return 'range_end_error';
     }
 
