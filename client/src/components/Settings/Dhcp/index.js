@@ -19,6 +19,7 @@ import {
     toggleDhcp,
     toggleLeaseModal,
 } from '../../../actions';
+import Tooltip from './Tooltip';
 
 const Dhcp = () => {
     const { t } = useTranslation();
@@ -254,12 +255,14 @@ const Dhcp = () => {
         return <h2 className='text-center mt-5'><Trans>unavailable_dhcp</Trans></h2>;
     }
 
+    const toggleDhcpButton = getToggleDhcpButton();
+
     return (
         <>
             <PageTitle title={t('dhcp_settings')} subtitle={t('dhcp_description')}>
                 <div className="page-title__actions">
                     <div className="card-actions mb-3">
-                        {getToggleDhcpButton()}
+                        {check ? toggleDhcpButton : <Tooltip content='setup_config_to_enable_dhcp_server'>{toggleDhcpButton}</Tooltip>}
                         <button
                             type="button"
                             className={statusButtonClass}
