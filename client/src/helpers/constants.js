@@ -363,10 +363,11 @@ export const RESPONSE_FILTER = {
     },
 };
 
-export const RESPONSE_FILTER_QUERIES = Object.values(RESPONSE_FILTER).reduce((acc, { query }) => {
-    acc[query] = query;
-    return acc;
-}, {});
+export const RESPONSE_FILTER_QUERIES = Object.values(RESPONSE_FILTER)
+    .reduce((acc, { query }) => {
+        acc[query] = query;
+        return acc;
+    }, {});
 
 export const FILTERED_STATUS_TO_META_MAP = {
     [FILTERED_STATUS.NOT_FILTERED_WHITE_LIST]: {
@@ -457,6 +458,12 @@ export const IP_MATCH_LIST_STATUS = {
     CIDR: 'CIDR', // the ip is in the specified CIDR range
 };
 
+export const DHCP_FORM_NAMES = {
+    DHCPv4: 'dhcpv4',
+    DHCPv6: 'dhcpv6',
+    DHCP_INTERFACES: 'dhcpInterfaces',
+};
+
 export const FORM_NAME = {
     UPSTREAM: 'upstream',
     DOMAIN_CHECK: 'domainCheck',
@@ -464,7 +471,6 @@ export const FORM_NAME = {
     REWRITES: 'rewrites',
     LOGS_FILTER: 'logsFilter',
     CLIENT: 'client',
-    DHCP: 'dhcp',
     LEASE: 'lease',
     ACCESS: 'access',
     BLOCKING_MODE: 'blockingMode',
@@ -476,6 +482,7 @@ export const FORM_NAME = {
     INSTALL: 'install',
     LOGIN: 'login',
     CACHE: 'cache',
+    ...DHCP_FORM_NAMES,
 };
 
 export const SMALL_SCREEN_SIZE = 767;

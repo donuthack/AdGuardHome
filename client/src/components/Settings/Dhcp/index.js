@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import classnames from 'classnames';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { DHCP_STATUS_RESPONSE, FORM_NAME } from '../../../helpers/constants';
-import Form from './Form';
+import classNames from 'classnames';
+import { destroy } from 'redux-form';
+import { DHCP_FORM_NAMES, DHCP_STATUS_RESPONSE, FORM_NAME } from '../../../helpers/constants';
 import Leases from './Leases';
 import StaticLeases from './StaticLeases/index';
 import Card from '../../ui/Card';
@@ -15,11 +15,14 @@ import {
     findActiveDhcp,
     getDhcpInterfaces,
     getDhcpStatus,
+    resetDhcp,
     setDhcpConfig,
     toggleDhcp,
     toggleLeaseModal,
 } from '../../../actions';
-import Tooltip from './Tooltip';
+import FormDHCPv4 from './FormDHCPv4';
+import FormDHCPv6 from './FormDHCPv6';
+import Interfaces from './Interfaces';
 
 const Dhcp = () => {
     const { t } = useTranslation();
@@ -30,7 +33,6 @@ const Dhcp = () => {
         processingConfig,
         processing,
         processingInterfaces,
-        interfaces,
         check,
         leases,
         staticLeases,
@@ -40,39 +42,32 @@ const Dhcp = () => {
         processingDhcp,
         v4,
         v6,
+        interface_name: interfaceName,
         enabled,
-        interface_name: initialInterfaceName,
         dhcp_available,
     } = dhcp;
 
-    const interface_name = useSelector((store) => store.form[FORM_NAME.DHCP]
-        && store.form[FORM_NAME.DHCP].values.interface_name);
+    const interface_name = useSelector((store) => store.form[FORM_NAME.DHCP_INTERFACES]
+        ?.values?.interface_name);
 
     useEffect(() => {
         dispatch(getDhcpStatus());
         dispatch(getDhcpInterfaces());
     }, []);
 
-    const handleFormSubmit = ({
-        enabled, interface_name, v4, v6,
-    }) => {
-        if (!Object.values(v4)
-            .some(Boolean)) {
-            // eslint-disable-next-line no-param-reassign
-            v4 = {};
+    const clear = () => {
+        // eslint-disable-next-line no-alert
+        if (window.confirm(t('dhcp_reset'))) {
+            Object.values(DHCP_FORM_NAMES)
+                .forEach((formName) => dispatch(destroy(formName)));
+            dispatch(resetDhcp());
         }
+    };
 
-        if (!Object.values(v6)
-            .some(Boolean)) {
-            // eslint-disable-next-line no-param-reassign
-            v6 = {};
-        }
-
+    const handleSubmit = (values) => {
         dispatch(setDhcpConfig({
-            enabled,
             interface_name,
-            v4,
-            v6,
+            ...values,
         }));
     };
 
@@ -92,8 +87,9 @@ const Dhcp = () => {
         const otherDhcpFound = check?.otherServer
             && check.otherServer.found === DHCP_STATUS_RESPONSE.YES;
 
-        const filledConfig = interface_name && (Object.keys(v4)
-            .every(Boolean)
+        const filledConfig = interface_name
+            && (Object.keys(v4)
+                .every(Boolean)
             || Object.keys(v6)
                 .every(Boolean));
 
@@ -114,7 +110,7 @@ const Dhcp = () => {
             <button
                 type="button"
                 className="btn btn-sm mr-2 btn-outline-success"
-                onClick={handleToggle}
+                onClick={() => handleToggle()}
                 disabled={!filledConfig || !check || otherDhcpFound
                 || processingDhcp || processingConfig}
             >
@@ -205,7 +201,7 @@ const Dhcp = () => {
         return '';
     };
 
-    const statusButtonClass = classnames('btn btn-sm', {
+    const statusButtonClass = classNames('btn btn-sm', {
         'btn-loading btn-primary': processingStatus,
         'btn-outline-primary': !processingStatus,
     });
@@ -214,55 +210,45 @@ const Dhcp = () => {
 
     const toggleModal = () => dispatch(toggleLeaseModal());
 
-    const {
-        gateway_ip,
-        subnet_mask,
-        range_start,
-        range_end,
-        lease_duration,
-    } = v4;
-
-    const initialV4Values = {
-        gateway_ip,
-        subnet_mask,
-        range_start,
-        range_end,
-        lease_duration,
-    };
-
-    const initialV4 = Object.values(initialV4Values)
-        .some(Boolean) ? initialV4Values : {};
+    const initialV4 = Object.values(v4)
+        .some(Boolean) ? v4 : {};
 
     const initialV6 = Object.values(v6)
         .some(Boolean)
-        ? {
-            range_start: v6.range_start,
-            lease_duration: v6.lease_duration,
-        } : {};
-
-    const initialValues = {
-        interface_name: initialInterfaceName,
-        enabled,
-        v4: initialV4,
-        v6: initialV6,
-    };
+        ? v6 : {};
 
     if (processing || processingInterfaces) {
         return <Loading />;
     }
 
     if (!processing && !dhcp_available) {
-        return <h2 className='text-center mt-5'><Trans>unavailable_dhcp</Trans></h2>;
+        return <div className="text-center pt-5">
+            <h2>
+                <Trans>unavailable_dhcp</Trans>
+            </h2>
+            <h4>
+                <Trans>unavailable_dhcp_desc</Trans>
+            </h4>
+        </div>;
     }
 
     const toggleDhcpButton = getToggleDhcpButton();
+
+    const warnings = !enabled && check && (
+        <>
+            <hr />
+            {getStaticIpWarning(t, check, interface_name)}
+            {getActiveDhcpMessage(t, check)}
+            {getDhcpWarning(check)}
+        </>
+    );
 
     return (
         <>
             <PageTitle title={t('dhcp_settings')} subtitle={t('dhcp_description')}>
                 <div className="page-title__actions">
                     <div className="card-actions mb-3">
-                        {check ? toggleDhcpButton : <Tooltip content='setup_config_to_enable_dhcp_server'>{toggleDhcpButton}</Tooltip>}
+                        {toggleDhcpButton}
                         <button
                             type="button"
                             className={statusButtonClass}
@@ -276,27 +262,35 @@ const Dhcp = () => {
             </PageTitle>
             {!processing && !processingInterfaces && (
                 <>
+                    <Interfaces
+                        initialValues={{ interface_name: interfaceName }}
+                    />
                     <Card
                         title={t('dhcp_ipv4_settings')}
                         bodyType="card-body box-body--settings"
                     >
                         <div>
-                            <Form
-                                onSubmit={handleFormSubmit}
-                                initialValues={initialValues}
-                                interfaces={interfaces}
+                            <FormDHCPv4
+                                onSubmit={handleSubmit}
+                                initialValues={{ v4: initialV4 }}
                                 processingConfig={processingConfig}
-                                processingInterfaces={processingInterfaces}
-                                enabled={enabled}
+                                clear={clear}
                             />
-                            {!enabled && check && (
-                                <>
-                                    <hr />
-                                    {getStaticIpWarning(t, check, interface_name)}
-                                    {getActiveDhcpMessage(t, check)}
-                                    {getDhcpWarning(check)}
-                                </>
-                            )}
+                            {warnings}
+                        </div>
+                    </Card>
+                    <Card
+                        title={t('dhcp_ipv6_settings')}
+                        bodyType="card-body box-body--settings"
+                    >
+                        <div>
+                            <FormDHCPv6
+                                onSubmit={handleSubmit}
+                                initialValues={{ v6: initialV6 }}
+                                processingConfig={processingConfig}
+                                clear={clear}
+                            />
+                            {warnings}
                         </div>
                     </Card>
                     {enabled && (
