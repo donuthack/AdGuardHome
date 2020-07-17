@@ -20,7 +20,7 @@ import DnsRewrites from '../../containers/DnsRewrites';
 
 import Dns from '../../containers/Dns';
 import Encryption from '../../containers/Encryption';
-import Dhcp from '../../containers/Dhcp';
+import Dhcp from '../Settings/Dhcp';
 import Clients from '../../containers/Clients';
 
 import Logs from '../../containers/Logs';

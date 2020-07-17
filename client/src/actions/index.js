@@ -342,6 +342,8 @@ export const getDhcpStatus = () => async (dispatch) => {
     dispatch(getDhcpStatusRequest());
     try {
         const status = await apiClient.getDhcpStatus();
+        const globalStatus = await apiClient.getGlobalStatus();
+        status.dhcp_available = globalStatus.dhcp_available;
         dispatch(getDhcpStatusSuccess(status));
     } catch (error) {
         dispatch(addErrorToast({ error }));
@@ -383,14 +385,12 @@ export const setDhcpConfigRequest = createAction('SET_DHCP_CONFIG_REQUEST');
 export const setDhcpConfigSuccess = createAction('SET_DHCP_CONFIG_SUCCESS');
 export const setDhcpConfigFailure = createAction('SET_DHCP_CONFIG_FAILURE');
 
-export const setDhcpConfig = (values) => async (dispatch, getState) => {
-    const { config } = getState().dhcp;
-    const updatedConfig = { ...config, ...values };
+export const setDhcpConfig = (values) => async (dispatch) => {
     dispatch(setDhcpConfigRequest());
     dispatch(findActiveDhcp(values.interface_name));
     try {
-        await apiClient.setDhcpConfig(updatedConfig);
-        dispatch(setDhcpConfigSuccess(updatedConfig));
+        await apiClient.setDhcpConfig(values);
+        dispatch(setDhcpConfigSuccess(values));
         dispatch(addSuccessToast('dhcp_config_saved'));
     } catch (error) {
         dispatch(addErrorToast({ error }));

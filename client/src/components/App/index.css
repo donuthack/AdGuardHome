@@ -65,3 +65,7 @@ body {
 .mw-75 {
     max-width: 75% !important;
 }
+
+.cursor--not-allowed {
+    cursor: not-allowed;
+}

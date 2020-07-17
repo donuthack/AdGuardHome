@@ -218,11 +218,10 @@ const dhcp = handleActions(
         [actions.toggleDhcpRequest]: (state) => ({ ...state, processingDhcp: true }),
         [actions.toggleDhcpFailure]: (state) => ({ ...state, processingDhcp: false }),
         [actions.toggleDhcpSuccess]: (state) => {
-            const { config } = state;
-            const newConfig = { ...config, enabled: !config.enabled };
+            const { enabled } = state;
             const newState = {
                 ...state,
-                config: newConfig,
+                enabled: !enabled,
                 check: null,
                 processingDhcp: false,
             };
@@ -232,9 +231,12 @@ const dhcp = handleActions(
         [actions.setDhcpConfigRequest]: (state) => ({ ...state, processingConfig: true }),
         [actions.setDhcpConfigFailure]: (state) => ({ ...state, processingConfig: false }),
         [actions.setDhcpConfigSuccess]: (state, { payload }) => {
-            const { config } = state;
-            const newConfig = { ...config, ...payload };
-            const newState = { ...state, config: newConfig, processingConfig: false };
+            const { v4, v6 } = state;
+            const newConfigV4 = { ...v4, ...payload.v4 };
+            const newConfigV6 = { ...v6, ...payload.v6 };
+            const newState = {
+                ...state, v4: newConfigV4, v6: newConfigV6, processingConfig: false,
+            };
             return newState;
         },
 
@@ -243,9 +245,10 @@ const dhcp = handleActions(
         [actions.resetDhcpSuccess]: (state) => ({
             ...state,
             processingReset: false,
-            config: {
-                enabled: false,
-            },
+            enabled: false,
+            v4: {},
+            v6: {},
+            interface_name: '',
         }),
 
         [actions.toggleLeaseModal]: (state) => {
@@ -295,13 +298,24 @@ const dhcp = handleActions(
         processingConfig: false,
         processingAdding: false,
         processingDeleting: false,
-        config: {
-            enabled: false,
-        },
+        enabled: false,
+        interface_name: '',
         check: null,
+        v4: {
+            gateway_ip: '',
+            subnet_mask: '',
+            range_start: '',
+            range_end: '',
+            lease_duration: 0,
+        },
+        v6: {
+            range_start: '',
+            lease_duration: 0,
+        },
         leases: [],
         staticLeases: [],
         isModalOpen: false,
+        dhcp_available: false,
     },
 );
 

@@ -70,10 +70,6 @@
     content: "";
 }
 
-.dhcp {
-    min-height: 450px;
-}
-
 .form__desc {
     margin-top: 10px;
     font-size: 13px;

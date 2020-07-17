@@ -7,7 +7,7 @@ import flow from 'lodash/flow';
 import {
     renderInputField,
     renderRadioField,
-    renderSelectField,
+    renderCheckboxField,
     toNumber,
 } from '../../../../helpers/form';
 import {
@@ -87,7 +87,7 @@ let Form = ({
                 <Field
                     name={name}
                     type="checkbox"
-                    component={renderSelectField}
+                    component={renderCheckboxField}
                     placeholder={t(placeholder)}
                     disabled={processing}
                     subtitle={t(subtitle)}
