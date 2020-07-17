@@ -4,10 +4,11 @@ import { Trans, withTranslation } from 'react-i18next';
 import ReactTable from 'react-table';
 
 import { MODAL_TYPE } from '../../../helpers/constants';
-import { normalizeTextarea } from '../../../helpers/helpers';
+import { splitByNewLine } from '../../../helpers/helpers';
 import Card from '../../ui/Card';
 import Modal from './Modal';
 import CellWrap from '../../ui/CellWrap';
+import LogsSearchLink from '../../ui/LogsSearchLink';
 
 class ClientsTable extends Component {
     handleFormAdd = (values) => {
@@ -29,7 +30,7 @@ class ClientsTable extends Component {
             }
 
             if (values.upstreams && typeof values.upstreams === 'string') {
-                config.upstreams = normalizeTextarea(values.upstreams);
+                config.upstreams = splitByNewLine(values.upstreams);
             } else {
                 config.upstreams = [];
             }
@@ -49,7 +50,10 @@ class ClientsTable extends Component {
     };
 
     getOptionsWithLabels = (options) => (
-        options.map((option) => ({ value: option, label: option }))
+        options.map((option) => ({
+            value: option,
+            label: option,
+        }))
     );
 
     getClient = (name, clients) => {
@@ -203,7 +207,15 @@ class ClientsTable extends Component {
             accessor: (row) => this.props.normalizedTopClients.configured[row.name] || 0,
             sortMethod: (a, b) => b - a,
             minWidth: 120,
-            Cell: CellWrap,
+            Cell: (row) => {
+                const content = CellWrap(row);
+
+                if (!row.value) {
+                    return content;
+                }
+
+                return <LogsSearchLink search={row.original.ids[0]}>{content}</LogsSearchLink>;
+            },
         },
         {
             Header: this.props.t('actions_table_header'),
@@ -289,11 +301,11 @@ class ClientsTable extends Component {
                         showPageJump={false}
                         renderTotalPagesCount={() => false}
                         previousText={
-                            <svg className="icons icon--small icon--gray w-100 h-100">
+                            <svg className="icons icon--24 icon--gray w-100 h-100">
                                 <use xlinkHref="#arrow-left" />
                             </svg>}
                         nextText={
-                            <svg className="icons icon--small icon--gray w-100 h-100">
+                            <svg className="icons icon--24 icon--gray w-100 h-100">
                                 <use xlinkHref="#arrow-right" />
                             </svg>}
                         loadingText={t('loading_table_status')}
@@ -311,7 +323,6 @@ class ClientsTable extends Component {
                     >
                         <Trans>client_add</Trans>
                     </button>
-
                     <Modal
                         isModalOpen={isModalOpen}
                         modalType={modalType}

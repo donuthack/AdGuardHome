@@ -11,6 +11,7 @@ import axios from 'axios';
 import i18n from 'i18next';
 import uniqBy from 'lodash/uniqBy';
 import ipaddr from 'ipaddr.js';
+import queryString from 'query-string';
 import versionCompare from './versionCompare';
 import { getTrackerData } from './trackers/trackers';
 
@@ -86,18 +87,16 @@ export const normalizeLogs = (logs) => logs.map((log) => {
 
     const { host: domain, type } = question;
 
-    const response = answer ? answer.map((response) => {
+    const processResponse = (data) => (data ? data.map((response) => {
         const { value, type, ttl } = response;
         return `${type}: ${value} (ttl=${ttl})`;
-    }) : [];
-
-    const tracker = getTrackerData(domain);
+    }) : []);
 
     return {
         time,
         domain,
         type,
-        response,
+        response: processResponse(answer),
         reason,
         client,
         client_proto,
@@ -106,7 +105,8 @@ export const normalizeLogs = (logs) => logs.map((log) => {
         status,
         serviceName: service_name,
         originalAnswer: original_answer,
-        tracker,
+        originalResponse: processResponse(original_answer),
+        tracker: getTrackerData(domain),
         answer_dnssec,
         elapsedMs,
         upstream,
@@ -306,15 +306,27 @@ export const redirectToCurrentProtocol = (values, httpPort = 80) => {
     }
 };
 
-export const normalizeTextarea = (text) => {
-    if (!text) {
-        return [];
-    }
+/**
+ * @param {string} text
+ * @returns []string
+ */
+export const splitByNewLine = (text) => text.split('\n')
+    .filter((n) => n.trim());
 
-    return text.replace(/[;, ]/g, '\n')
-        .split('\n')
-        .filter((n) => n);
-};
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+export const trimMultilineString = (text) => splitByNewLine(text)
+    .map((line) => line.trim())
+    .join('\n');
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+export const removeEmptyLines = (text) => splitByNewLine(text)
+    .join('\n');
 
 /**
  * Normalizes the topClients array
@@ -533,10 +545,6 @@ export const getMap = (arr, key, value) => arr.reduce((acc, curr) => {
     return acc;
 }, {});
 
-export const normalizeMultiline = (multiline) => `${normalizeTextarea(multiline)
-    .map((line) => line.trim())
-    .join('\n')}\n`;
-
 /**
  * @param parsedIp {object} ipaddr.js IPv4 or IPv6 object
  * @param cidr {array} ipaddr.js CIDR array
@@ -618,3 +626,17 @@ export const selectCompletedFields = (values) => Object.entries(values)
         }
         return acc;
     }, {});
+
+/**
+ * @param {string} search
+ * @param {string} [response_status]
+ * @returns {string}
+ */
+export const getLogsUrlParams = (search, response_status) => `?${queryString.stringify({
+    search,
+    response_status,
+})}`;
+
+export const processContent = (content) => (Array.isArray(content)
+    ? content.filter(([, value]) => value)
+        .flat() : content);

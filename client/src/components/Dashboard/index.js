@@ -118,13 +118,7 @@ const Dashboard = ({
                     <div className="col-lg-6">
                         <Counters
                             subtitle={subtitle}
-                            interval={stats.interval}
-                            dnsQueries={stats.numDnsQueries}
-                            blockedFiltering={stats.numBlockedFiltering}
-                            replacedSafebrowsing={stats.numReplacedSafebrowsing}
-                            replacedParental={stats.numReplacedParental}
-                            replacedSafesearch={stats.numReplacedSafesearch}
-                            avgProcessingTime={stats.avgProcessingTime}
+
                             refreshButton={refreshButton}
                         />
                     </div>
