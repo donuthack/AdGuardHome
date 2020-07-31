@@ -157,6 +157,8 @@ func (d *Dnsfilter) checkSafeSearch(host string) (Result, error) {
 }
 
 // for each dot, hash it and add it to string
+// "sub.host.com" -> "hash(sub.host.com).hash(host.com)"
+//  where hash() returns the first 4 characters (2 bytes) from SHA-256 hashsum of the input hostname
 // The maximum is 4 components: "a.b.c.d"
 func hostnameToHashParam(host string) (string, map[string]bool) {
 	var hashparam bytes.Buffer
@@ -191,7 +193,7 @@ func hostnameToHashParam(host string) (string, map[string]bool) {
 
 		sum := sha256.Sum256([]byte(curhost))
 		hashes[hex.EncodeToString(sum[:])] = true
-		hashparam.WriteString(fmt.Sprintf("%s.", hex.EncodeToString(sum[0:4])))
+		hashparam.WriteString(fmt.Sprintf("%s.", hex.EncodeToString(sum[0:2])))
 
 		pos := strings.IndexByte(curhost, byte('.'))
 		if pos < 0 {

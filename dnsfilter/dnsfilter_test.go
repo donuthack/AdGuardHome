@@ -147,9 +147,9 @@ func TestEtcHostsMatching(t *testing.T) {
 // SAFE BROWSING
 
 func TestSafeBrowsingHash(t *testing.T) {
-	q, hashes := hostnameToHashParam("1.2.3.4.5.6")
-	assert.Equal(t, "0132d0fa.b5413b4e.5fa067c1.e7f6c011.", q)
-	assert.Equal(t, 4, len(hashes))
+	q, hashes := hostnameToHashParam("1.2.3.sub.host.com")
+	assert.Equal(t, "7a1b.af5a.eb11.", q)
+	assert.Equal(t, 3, len(hashes))
 }
 
 func TestSafeBrowsing(t *testing.T) {
