@@ -36,7 +36,7 @@ const renderInterfaces = ((interfaces) => (
 ));
 
 const renderInterfaceValues = ((interfaceValues) => (
-    <ul className="list-unstyled mt-1 mb-0">
+    <ul className="list-unstyled mt-1 mb-3">
         <li>
             <span className="interface__title">MTU: </span>
             {interfaceValues.mtu}

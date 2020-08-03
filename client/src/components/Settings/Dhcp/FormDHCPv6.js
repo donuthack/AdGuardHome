@@ -46,36 +46,40 @@ const FormDHCPv6 = (props) => {
 
     return (
         <form onSubmit={handleSubmit}>
-            <div className="col-lg-6">
-                <div className="form__group form__group--settings">
-                    <div className="row">
-                        <div className="col-12">
-                            <label>{t('dhcp_form_range_title')}</label>
-                        </div>
-                        <div className="col">
-                            <Field
-                                name="v6.range_start"
-                                component={renderInputField}
-                                type="text"
-                                className="form-control"
-                                placeholder={t('dhcp_form_range_start')}
-                                validate={[validateIpv6, validateRequired]}
-                            />
-                        </div>
-                        <div className="col">
-                            <Field
-                                name="v6.range_end"
-                                component="input"
-                                type="text"
-                                className="form-control disabled cursor--not-allowed"
-                                placeholder={maxIPv6}
-                                value={maxIPv6}
-                                disabled
-                            />
+            <div className="row">
+                <div className="col-lg-6">
+                    <div className="form__group form__group--settings">
+                        <div className="row">
+                            <div className="col-12">
+                                <label>{t('dhcp_form_range_title')}</label>
+                            </div>
+                            <div className="col">
+                                <Field
+                                    name="v6.range_start"
+                                    component={renderInputField}
+                                    type="text"
+                                    className="form-control"
+                                    placeholder={t('dhcp_form_range_start')}
+                                    validate={[validateIpv6, validateRequired]}
+                                />
+                            </div>
+                            <div className="col">
+                                <Field
+                                    name="v6.range_end"
+                                    component="input"
+                                    type="text"
+                                    className="form-control disabled cursor--not-allowed"
+                                    placeholder={maxIPv6}
+                                    value={maxIPv6}
+                                    disabled
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div className="form__group form__group--settings">
+            </div>
+            <div className="row">
+                <div className="col-lg-6 form__group form__group--settings">
                     <label>{t('dhcp_form_lease_title')}</label>
                     <Field
                         name="v6.lease_duration"
