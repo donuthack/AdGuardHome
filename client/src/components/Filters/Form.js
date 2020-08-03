@@ -148,13 +148,13 @@ const Form = (props) => {
             >
                 {t('cancel_btn')}
             </button>
-            <button
+            {modalType !== MODAL_TYPE.SELECT_MODAL_TYPE && <button
                 type="submit"
                 className="btn btn-success"
                 disabled={processingAddFilter || processingConfigFilter}
             >
                 {t('save_btn')}
-            </button>
+            </button>}
         </div>
     </form>;
 };
