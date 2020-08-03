@@ -671,3 +671,12 @@ export const getLogsUrlParams = (search, response_status) => `?${queryString.str
 export const processContent = (content) => (Array.isArray(content)
     ? content.filter(([, value]) => value)
         .flat() : content);
+
+/**
+ * @param object {object}
+ * @param sortKey {string}
+ * @returns {string[]}
+ */
+export const getObjectKeysSorted = (object, sortKey) => Object.entries(object)
+    .sort(([, { [sortKey]: order1 }], [, { [sortKey]: order2 }]) => order1 - order2)
+    .map(([key]) => key);
