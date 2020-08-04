@@ -1,6 +1,5 @@
-import React, { Component, lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Route } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import LoadingBar from 'react-redux-loading-bar';
 import { hot } from 'react-hot-loader/root';
 
@@ -9,18 +8,9 @@ import '../ui/Tabler.css';
 import '../ui/ReactTable.css';
 import './index.css';
 
-import Settings from '../../containers/Settings';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import CustomRules from '../../containers/CustomRules';
-import DnsBlocklist from '../../containers/DnsBlocklist';
-import DnsAllowlist from '../../containers/DnsAllowlist';
-import DnsRewrites from '../../containers/DnsRewrites';
-
-import Dns from '../../containers/Dns';
-import Encryption from '../../containers/Encryption';
-import Dhcp from '../../containers/Dhcp';
-import Clients from '../../containers/Clients';
-
+import { propTypes } from 'redux-form';
 import Toasts from '../Toasts';
 import Footer from '../ui/Footer';
 import Status from '../ui/Status';
@@ -31,38 +21,102 @@ import Icons from '../ui/Icons';
 import i18n from '../../i18n';
 import Loading from '../ui/Loading';
 import { FILTERS_URLS, MENU_URLS, SETTINGS_URLS } from '../../helpers/constants';
-import Services from '../Filters/Services';
 import { getLogsUrlParams, setHtmlLangAttr } from '../../helpers/helpers';
 import Header from '../Header';
+import { changeLanguage, getDnsStatus } from '../../actions';
 
-// todo - lazy loading for all routes
-// todo -  make loading component screen size high
-const Dashboard = lazy(() => import('../../containers/Dashboard'));
+// todo: unify
+// todo: fix styles loading before lazy import
+// todo: fix eslint
 const Logs = lazy(() => import('../../containers/Logs'));
-const SetupGuide = lazy(() => import('../../containers/SetupGuide'));
+const Clients = lazy(() => import('../../containers/Clients'));
+const Services = lazy(() => import('../Filters/Services'));
 
-class App extends Component {
-    componentDidMount() {
-        this.props.getDnsStatus();
-    }
+const ROUTES = [
+    {
+        path: MENU_URLS.root,
+        component: 'Dashboard',
+        exact: true,
+    },
+    {
+        path: [`${MENU_URLS.logs}${getLogsUrlParams(':search?', ':response_status?')}`, MENU_URLS.logs],
+        component: Logs,
+    },
+    {
+        path: MENU_URLS.guide,
+        component: 'SetupGuide',
+    },
+    {
+        path: SETTINGS_URLS.settings,
+        component: 'Settings',
+    },
+    {
+        path: SETTINGS_URLS.dns,
+        component: 'Dns',
+    },
+    {
+        path: SETTINGS_URLS.encryption,
+        component: 'Encryption',
+    },
+    {
+        path: SETTINGS_URLS.dhcp,
+        component: 'Dhcp',
+    },
+    {
+        path: SETTINGS_URLS.clients,
+        component: Clients,
+    },
+    {
+        path: FILTERS_URLS.dns_blocklists,
+        component: 'DnsBlocklist',
+    },
+    {
+        path: FILTERS_URLS.dns_allowlists,
+        component: 'DnsAllowlist',
+    },
+    {
+        path: FILTERS_URLS.dns_rewrites,
+        component: 'DnsRewrites',
+    },
+    {
+        path: FILTERS_URLS.custom_rules,
+        component: 'CustomRules',
+    },
+    {
+        path: FILTERS_URLS.blocked_services,
+        component: Services,
+    },
+];
 
-    componentDidUpdate(prevProps) {
-        if (this.props.dashboard.language !== prevProps.dashboard.language) {
-            this.setLanguage();
-        }
-    }
+const renderRoute = ({ path, component, exact }, idx) => <Route
+    key={idx}
+    exact={exact}
+    path={path}
+    component={typeof component === 'string'
+        // todo: fix eslint warning
+        ? lazy(() => import(`../../containers/${component}`))
+        : component} />;
 
-    reloadPage = () => {
-        window.location.reload();
-    };
+const App = () => {
+    const dispatch = useDispatch();
+    const {
+        language,
+        isCoreRunning,
+        isUpdateAvailable,
+        processing,
+    } = useSelector((state) => state.dashboard, shallowEqual);
 
-    handleUpdate = () => {
-        this.props.getUpdate();
-    };
+    const { processing: processingEncryption } = useSelector((
+        state,
+    ) => state.encryption, shallowEqual);
 
-    setLanguage = () => {
-        const { processing, language } = this.props.dashboard;
+    const updateAvailable = isCoreRunning && isUpdateAvailable;
 
+    useEffect(() => {
+        dispatch(getDnsStatus());
+    }, []);
+
+    const setLanguage = () => {
         if (!processing) {
             if (language) {
                 i18n.changeLanguage(language);
@@ -71,105 +125,56 @@ class App extends Component {
         }
 
         i18n.on('languageChanged', (lang) => {
-            this.props.changeLanguage(lang);
+            dispatch(changeLanguage(lang));
         });
     };
 
-    render() {
-        const { dashboard, encryption, getVersion } = this.props;
-        const updateAvailable = dashboard.isCoreRunning && dashboard.isUpdateAvailable;
+    useEffect(() => {
+        setLanguage();
+    }, [language]);
 
-        return (
-            <HashRouter hashType="noslash">
-                <>
-                    {updateAvailable && (
-                        <>
-                            <UpdateTopline
-                                url={dashboard.announcementUrl}
-                                version={dashboard.newVersion}
-                                canAutoUpdate={dashboard.canAutoUpdate}
-                                getUpdate={this.handleUpdate}
-                                processingUpdate={dashboard.processingUpdate}
-                            />
-                            <UpdateOverlay processingUpdate={dashboard.processingUpdate} />
-                        </>
-                    )}
-                    {!encryption.processing && (
-                        <EncryptionTopline notAfter={encryption.not_after} />
-                    )}
-                    <LoadingBar className="loading-bar" updateTime={1000} />
-                    <Header />
-                    <Suspense fallback={<Loading />}>
-                        <div className="container container--wrap pb-5">
-                            {dashboard.processing && <Loading />}
-                            {!dashboard.isCoreRunning && (
-                                <div className="row row-cards">
-                                    <div className="col-lg-12">
-                                        <Status reloadPage={this.reloadPage}
-                                                message="dns_start"
-                                        />
-                                        <Loading />
-                                    </div>
+    const reloadPage = () => {
+        window.location.reload();
+    };
+
+    return (
+        <HashRouter hashType="noslash">
+            <>
+                {updateAvailable && <>
+                    <UpdateTopline />
+                    <UpdateOverlay />
+                </>}
+                {!processingEncryption && <EncryptionTopline />}
+                <LoadingBar className="loading-bar" updateTime={1000} />
+                <Header />
+                <Suspense fallback={<Loading className="h-100" />}>
+                    <div className="container container--wrap pb-5">
+                        {processing && <Loading />}
+                        {!isCoreRunning && (
+                            <div className="row row-cards">
+                                <div className="col-lg-12">
+                                    <Status reloadPage={reloadPage} message="dns_start" />
+                                    <Loading />
                                 </div>
-                            )}
-                            {!dashboard.processing && dashboard.isCoreRunning && (
-                                <>
-                                    <Route path={MENU_URLS.root} exact
-                                           component={Dashboard} />
-                                    <Route
-                                        path={[`${MENU_URLS.logs}${getLogsUrlParams(':search?', ':response_status?')}`, MENU_URLS.logs]}
-                                        component={Logs} />
-                                    <Route path={MENU_URLS.guide}
-                                           component={SetupGuide} />
-                                    <Route path={SETTINGS_URLS.settings}
-                                           component={Settings} />
-                                    <Route path={SETTINGS_URLS.dns}
-                                           component={Dns} />
-                                    <Route path={SETTINGS_URLS.encryption}
-                                           component={Encryption} />
-                                    <Route path={SETTINGS_URLS.dhcp}
-                                           component={Dhcp} />
-                                    <Route path={SETTINGS_URLS.clients}
-                                           component={Clients} />
-                                    <Route path={FILTERS_URLS.dns_blocklists}
-                                           component={DnsBlocklist} />
-                                    <Route path={FILTERS_URLS.dns_allowlists}
-                                           component={DnsAllowlist} />
-                                    <Route path={FILTERS_URLS.dns_rewrites}
-                                           component={DnsRewrites} />
-                                    <Route path={FILTERS_URLS.custom_rules}
-                                           component={CustomRules} />
-                                    <Route path={FILTERS_URLS.blocked_services}
-                                           component={Services} />
-                                </>
-                            )}
-                        </div>
-                    </Suspense>
-                    <Footer
-                        dnsVersion={dashboard.dnsVersion}
-                        dnsPort={dashboard.dnsPort}
-                        processingVersion={dashboard.processingVersion}
-                        getVersion={getVersion}
-                        checkUpdateFlag={dashboard.checkUpdateFlag}
-                    />
-                    <Toasts />
-                    <Icons />
-                </>
-            </HashRouter>
-        );
-    }
-}
+                            </div>
+                        )}
+                        {!processing && isCoreRunning && ROUTES.map(renderRoute)}
+                    </div>
+                    <Footer />
+                </Suspense>
+                <Toasts />
+                <Icons />
+            </>
+        </HashRouter>
+    );
+};
 
-App.propTypes = {
-    getDnsStatus: PropTypes.func,
-    getUpdate: PropTypes.func,
-    enableDns: PropTypes.func,
-    dashboard: PropTypes.object,
-    isCoreRunning: PropTypes.bool,
-    error: PropTypes.string,
-    changeLanguage: PropTypes.func,
-    encryption: PropTypes.object,
-    getVersion: PropTypes.func,
+App.propTypes = {};
+
+renderRoute.propTypes = {
+    path: propTypes.oneOfType(propTypes.string, propTypes.arrayOf(propTypes.string)).isRequired,
+    component: propTypes.oneOfType(propTypes.string, propTypes.component).isRequired,
+    exact: propTypes.bool,
 };
 
 export default hot(App);

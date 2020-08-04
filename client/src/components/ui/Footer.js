@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
@@ -28,7 +27,7 @@ const linksData = [
     },
 ];
 
-const Footer = (props) => {
+const Footer = () => {
     const { t } = useTranslation();
 
     const getYear = () => {
@@ -58,11 +57,6 @@ const Footer = (props) => {
         >
             {t(name)}
         </a>);
-
-
-    const {
-        dnsVersion, processingVersion, getVersion, checkUpdateFlag,
-    } = props;
 
     return (
         <>
@@ -94,12 +88,7 @@ const Footer = (props) => {
                     <div className="footer__row">
                         {renderCopyright()}
                         <div className="footer__column footer__column--language">
-                            <Version
-                                dnsVersion={dnsVersion}
-                                processingVersion={processingVersion}
-                                getVersion={getVersion}
-                                checkUpdateFlag={checkUpdateFlag}
-                            />
+                            <Version />
                         </div>
                     </div>
                 </div>
@@ -108,11 +97,6 @@ const Footer = (props) => {
     );
 };
 
-Footer.propTypes = {
-    dnsVersion: PropTypes.string,
-    processingVersion: PropTypes.bool,
-    getVersion: PropTypes.func,
-    checkUpdateFlag: PropTypes.bool,
-};
+Footer.propTypes = {};
 
 export default Footer;
