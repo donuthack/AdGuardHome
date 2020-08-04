@@ -3,8 +3,10 @@ import axios from 'axios';
 import { getPathWithQueryString } from '../helpers/helpers';
 import { R_PATH_LAST_PART } from '../helpers/constants';
 
+const { baseUrl } = require('../../package.json');
+
 class Api {
-    baseUrl = 'control';
+    baseUrl = baseUrl;
 
     async makeRequest(path, method = 'POST', config) {
         try {
@@ -26,7 +28,7 @@ class Api {
 
                 throw new Error(`${errorPath} | ${error.response.data} | ${error.response.status}`);
             }
-            throw new Error(`${errorPath} | ${error.message ? error.message : error}`);
+            throw new Error(`${errorPath} | ${error.message || error}`);
         }
     }
 

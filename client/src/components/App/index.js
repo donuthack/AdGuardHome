@@ -38,6 +38,7 @@ import { FILTERS_URLS, MENU_URLS, SETTINGS_URLS } from '../../helpers/constants'
 import Services from '../Filters/Services';
 import { getLogsUrlParams, setHtmlLangAttr } from '../../helpers/helpers';
 
+// todo lazy loading
 class App extends Component {
     componentDidMount() {
         this.props.getDnsStatus();

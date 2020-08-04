@@ -18,12 +18,11 @@ const ASSETS_PATH = path.resolve(RESOURCES_PATH, 'public/assets');
 const PUBLIC_PATH = path.resolve(__dirname, '../build/static');
 const PUBLIC_ASSETS_PATH = path.resolve(PUBLIC_PATH, 'assets');
 
-const BUILD_ENVS = {
-    dev: 'development',
-    prod: 'production',
-};
+const { BUILD_ENVS } = require('./package.json');
 
 const BUILD_ENV = BUILD_ENVS[process.env.BUILD_ENV];
+
+const isDev = BUILD_ENV === BUILD_ENVS.dev;
 
 const config = {
     mode: BUILD_ENV,
@@ -36,7 +35,7 @@ const config = {
     },
     output: {
         path: PUBLIC_PATH,
-        filename: '[name].[chunkhash].js',
+        filename: '[name].[hash].js',
     },
     resolve: {
         modules: ['node_modules'],
@@ -48,10 +47,20 @@ const config = {
     module: {
         rules: [
             {
+                test: /\.ya?ml$/,
+                type: 'json',
+                use: 'yaml-loader',
+            },
+            {
                 test: /\.css$/i,
                 use: [
                     'style-loader',
-                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: MiniCssExtractPlugin.loader,
+                        options: {
+                            hmr: isDev,
+                        },
+                    },
                     {
                         loader: 'css-loader',
                         options: {
@@ -122,7 +131,8 @@ const config = {
             template: HTML_LOGIN_PATH,
         }),
         new MiniCssExtractPlugin({
-            filename: '[name].[contenthash].css',
+            filename: isDev ? '[name].css' : '[name].[hash].css',
+            chunkFilename: isDev ? '[id].css' : '[id].[hash].css',
         }),
         new CopyPlugin({
             patterns: [
