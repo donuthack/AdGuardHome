@@ -42,6 +42,7 @@ const config = {
         alias: {
             MainRoot: path.resolve(__dirname, '../'),
             ClientRoot: path.resolve(__dirname, './src'),
+            'react-dom': '@hot-loader/react-dom',
         },
     },
     module: {

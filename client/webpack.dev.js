@@ -31,6 +31,7 @@ const getDevServerConfig = (proxyUrl = baseUrl) => {
     const devServerHost = host === ZERO_HOST ? LOCALHOST : host;
 
     return {
+        hot: true,
         host: devServerHost,
         port: DEV_SERVER_PORT || port + 8000,
         proxy: {
