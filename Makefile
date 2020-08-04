@@ -187,6 +187,13 @@ release: client_with_deps
 	go mod download
 	@echo Starting release build: version $(VERSION), channel $(CHANNEL)
 	CHANNEL=$(CHANNEL) $(GORELEASER_COMMAND)
+	$(call write_version_file,$(VERSION))
+	PATH=$(GOPATH)/bin:$(PATH) packr clean
+
+release_and_sign: client_with_deps
+	go mod download
+	@echo Starting release build: version $(VERSION), channel $(CHANNEL)
+	CHANNEL=$(CHANNEL) $(GORELEASER_COMMAND)
 	$(call repack_dist)
 	$(call write_version_file,$(VERSION))
 	PATH=$(GOPATH)/bin:$(PATH) packr clean
