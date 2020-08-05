@@ -114,7 +114,7 @@ func Create(config ServerConfig) *Server {
 		return nil
 	}
 
-	if !v4conf.Enabled && !v6conf.Enabled {
+	if s.conf.Enabled && !v4conf.Enabled && !v6conf.Enabled {
 		log.Error("Can't enable DHCP server because neither DHCPv4 nor DHCPv6 servers are configured")
 		return nil
 	}
