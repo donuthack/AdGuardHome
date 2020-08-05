@@ -165,7 +165,7 @@ const Dhcp = () => {
         );
     };
 
-    const getStaticIpWarning = (t, check, interfaceName) => {
+    const getStaticIpWarning = (check, interfaceName) => {
         if (check.staticIP.static === DHCP_STATUS_RESPONSE.ERROR) {
             return <>
                 <div className="text-danger mb-2">
@@ -236,7 +236,7 @@ const Dhcp = () => {
     const warnings = !enabled && check && (
         <>
             <hr />
-            {getStaticIpWarning(t, check, interface_name)}
+            {getStaticIpWarning(check, interface_name)}
             {getActiveDhcpMessage(t, check)}
             {getDhcpWarning(check)}
         </>

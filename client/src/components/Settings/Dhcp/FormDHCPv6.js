@@ -29,6 +29,7 @@ const FormDHCPv6 = (props) => {
 
     const dhcpInterfaces = useSelector((store) => store.form[FORM_NAME.DHCP_INTERFACES]);
     const interface_name = dhcpInterfaces?.values?.interface_name ?? {};
+    const selectedInterface = !!interface_name;
     const dhcpInterfacesErrors = dhcpInterfaces?.syncErrors;
 
     const invalid = !interface_name || dhcpv6Errors || dhcpInterfacesErrors;
@@ -60,6 +61,7 @@ const FormDHCPv6 = (props) => {
                                     className="form-control"
                                     placeholder={t('dhcp_form_range_start')}
                                     validate={[validateIpv6, validateRequired]}
+                                    disabled={!selectedInterface}
                                 />
                             </div>
                             <div className="col">
@@ -89,6 +91,7 @@ const FormDHCPv6 = (props) => {
                         validate={[validateIsPositiveValue, validateRequired]}
                         normalizeOnBlur={toNumber}
                         min={0}
+                        disabled={!selectedInterface}
                     />
                 </div>
             </div>
@@ -97,7 +100,7 @@ const FormDHCPv6 = (props) => {
                 <button
                     type="submit"
                     className="btn btn-success btn-standard"
-                    disabled={submitting || invalid || processingConfig}
+                    disabled={submitting || invalid || processingConfig || !selectedInterface}
                 >
                     {t('save_config')}
                 </button>

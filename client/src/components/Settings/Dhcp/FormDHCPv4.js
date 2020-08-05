@@ -30,6 +30,7 @@ const FormDHCPv4 = (props) => {
 
     const dhcpInterfaces = useSelector((store) => store.form[FORM_NAME.DHCP_INTERFACES]);
     const interface_name = dhcpInterfaces?.values?.interface_name ?? {};
+    const selectedInterface = !!interface_name;
     const dhcpInterfacesErrors = dhcpInterfaces?.syncErrors;
 
     const invalid = !interface_name || dhcpv4Errors || dhcpInterfacesErrors;
@@ -56,6 +57,7 @@ const FormDHCPv4 = (props) => {
                             className="form-control"
                             placeholder={t('dhcp_form_gateway_input')}
                             validate={[validateIpv4, validateRequired]}
+                            disabled={!selectedInterface}
                         />
                     </div>
                     <div className="form__group form__group--settings">
@@ -67,6 +69,7 @@ const FormDHCPv4 = (props) => {
                             className="form-control"
                             placeholder={t('dhcp_form_subnet_input')}
                             validate={[validateIpv4, validateRequired]}
+                            disabled={!selectedInterface}
                         />
                     </div>
                 </div>
@@ -84,6 +87,7 @@ const FormDHCPv4 = (props) => {
                                     className="form-control"
                                     placeholder={t('dhcp_form_range_start')}
                                     validate={[validateIpv4]}
+                                    disabled={!selectedInterface}
                                 />
                             </div>
                             <div className="col">
@@ -94,6 +98,7 @@ const FormDHCPv4 = (props) => {
                                     className="form-control"
                                     placeholder={t('dhcp_form_range_end')}
                                     validate={[validateIpv4, validateIpv4RangeEnd]}
+                                    disabled={!selectedInterface}
                                 />
                             </div>
                         </div>
@@ -109,6 +114,7 @@ const FormDHCPv4 = (props) => {
                             validate={[validateIsPositiveValue, validateRequired]}
                             normalize={toNumber}
                             min={0}
+                            disabled={!selectedInterface}
                         />
                     </div>
                 </div>
@@ -117,7 +123,7 @@ const FormDHCPv4 = (props) => {
                 <button
                     type="submit"
                     className="btn btn-success btn-standard"
-                    disabled={submitting || invalid || processingConfig}
+                    disabled={submitting || invalid || processingConfig || !selectedInterface}
                 >
                     {t('save_config')}
                 </button>
