@@ -32,7 +32,7 @@ type ServerConfig struct {
 	InterfaceName string `yaml:"interface_name"`
 
 	Conf4 V4ServerConf `yaml:"dhcpv4"`
-	Conf6 V6ServerConf `yaml:"dhcpv6"`
+	Conf6 V6SerreadreverConf `yaml:"dhcpv6"`
 
 	WorkDir    string `yaml:"-"`
 	DBFilePath string `yaml:"-"` // path to DB file
