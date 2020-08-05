@@ -16,16 +16,7 @@ const renderInterfaces = ((interfaces) => (
         .map((item) => {
             const option = interfaces[item];
             const { name } = option;
-            const onlyIPv6 = option.ip_addresses.every((ip) => ip.includes(':'));
-            let interfaceIP = option.ip_addresses[0];
-
-            if (!onlyIPv6) {
-                option.ip_addresses.forEach((ip) => {
-                    if (!ip.includes(':')) {
-                        interfaceIP = ip;
-                    }
-                });
-            }
+            const [interfaceIP] = option.ip_addresses;
 
             return (
                 <option value={name} key={name}>

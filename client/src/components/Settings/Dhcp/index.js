@@ -165,41 +165,6 @@ const Dhcp = () => {
         );
     };
 
-    const getStaticIpWarning = (check, interfaceName) => {
-        if (check.staticIP.static === DHCP_STATUS_RESPONSE.ERROR) {
-            return <>
-                <div className="text-danger mb-2">
-                    <Trans>dhcp_static_ip_error</Trans>
-                    <div className="mt-2 mb-2">
-                        <Accordion label={t('error_details')}>
-                            <span>{check.staticIP.error}</span>
-                        </Accordion>
-                    </div>
-                </div>
-                <hr className="mt-4 mb-4" />
-            </>;
-        }
-        if (check.staticIP.static === DHCP_STATUS_RESPONSE.NO && check.staticIP.ip
-            && interfaceName) {
-            return <>
-                <div className="text-secondary mb-2">
-                    <Trans
-                        components={[<strong key="0">example</strong>]}
-                        values={{
-                            interfaceName,
-                            ipAddress: check.staticIP.ip,
-                        }}
-                    >
-                        dhcp_dynamic_ip_found
-                    </Trans>
-                </div>
-                <hr className="mt-4 mb-4" />
-            </>;
-        }
-
-        return '';
-    };
-
     const statusButtonClass = classNames('btn btn-sm mx-2', {
         'btn-loading btn-primary': processingStatus,
         'btn-outline-primary': !processingStatus,
@@ -236,7 +201,6 @@ const Dhcp = () => {
     const warnings = !enabled && check && (
         <>
             <hr />
-            {getStaticIpWarning(check, interface_name)}
             {getActiveDhcpMessage(t, check)}
             {getDhcpWarning(check)}
         </>

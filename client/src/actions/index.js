@@ -3,7 +3,7 @@ import i18next from 'i18next';
 import axios from 'axios';
 
 import { splitByNewLine, sortClients } from '../helpers/helpers';
-import { CHECK_TIMEOUT, SETTINGS_NAMES } from '../helpers/constants';
+import { CHECK_TIMEOUT, DHCP_STATUS_RESPONSE, SETTINGS_NAMES } from '../helpers/constants';
 import { areEqualVersions } from '../helpers/version';
 import { getTlsStatus } from './encryption';
 import apiClient from '../api/Api';
@@ -370,11 +370,29 @@ export const findActiveDhcpRequest = createAction('FIND_ACTIVE_DHCP_REQUEST');
 export const findActiveDhcpSuccess = createAction('FIND_ACTIVE_DHCP_SUCCESS');
 export const findActiveDhcpFailure = createAction('FIND_ACTIVE_DHCP_FAILURE');
 
-export const findActiveDhcp = (name) => async (dispatch) => {
+export const findActiveDhcp = (name) => async (dispatch, getState) => {
     dispatch(findActiveDhcpRequest());
     try {
         const activeDhcp = await apiClient.findActiveDhcp(name);
         dispatch(findActiveDhcpSuccess(activeDhcp));
+        const { check, interface_name } = getState().dhcp;
+        const { staticIP } = check ?? {};
+
+        if (staticIP.static === DHCP_STATUS_RESPONSE.ERROR) {
+            dispatch(addErrorToast({ error: 'dhcp_static_ip_error' }));
+            if (staticIP.error) {
+                dispatch(addErrorToast({ error: staticIP.error }));
+            }
+        } else if (staticIP.static === DHCP_STATUS_RESPONSE.NO && staticIP.ip && interface_name) {
+            /* todo: replace to
+                 <Trans components={[<strong key="0">example</strong>]} values={{
+                interface_name,
+                ipAddress: staticIP.ip,
+            }}>dhcp_dynamic_ip_found</Trans> */
+            dispatch(addSuccessToast('dhcp_dynamic_ip_found'));
+        } else if (staticIP.static === DHCP_STATUS_RESPONSE.YES) {
+            dispatch(addSuccessToast('dhcp_found'));
+        }
     } catch (error) {
         dispatch(addErrorToast({ error }));
         dispatch(findActiveDhcpFailure());
