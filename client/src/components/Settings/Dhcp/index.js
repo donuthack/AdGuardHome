@@ -244,7 +244,7 @@ const Dhcp = () => {
     return <>
         <PageTitle title={t('dhcp_settings')} subtitle={t('dhcp_description')}>
             <div className="page-title__actions">
-                <div className="card-actions mb-3">
+                <div className="mb-3">
                     {toggleDhcpButton}
                     <button
                         type="button"
