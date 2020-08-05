@@ -23,15 +23,16 @@ const FormDHCPv6 = (props) => {
     } = props;
 
     const { t } = useTranslation();
-    const dhcpv6 = useSelector((store) => store.form[FORM_NAME.DHCPv6]);
+    const dhcpv6 = useSelector((state) => state.form[FORM_NAME.DHCPv6]);
     const v6 = dhcpv6?.values?.v6 ?? {};
     const dhcpv6Errors = dhcpv6?.syncErrors;
 
-    const dhcpInterfaces = useSelector((store) => store.form[FORM_NAME.DHCP_INTERFACES]);
-    const interface_name = dhcpInterfaces?.values?.interface_name ?? {};
-    const selectedInterface = !!interface_name;
-    const dhcpInterfacesErrors = dhcpInterfaces?.syncErrors;
+    const dhcpInterfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES]);
+    const interface_name = dhcpInterfaces?.values?.interface_name;
+    const dhcpInterface = useSelector((state) => state.dhcp.interfaces[interface_name]);
+    const interfaceIncludesIpv6 = dhcpInterface?.ip_addresses.some((ip) => ip.includes(':'));
 
+    const dhcpInterfacesErrors = dhcpInterfaces?.syncErrors;
     const invalid = !interface_name || dhcpv6Errors || dhcpInterfacesErrors;
 
     const validateRequired = useCallback((value) => {
@@ -61,7 +62,7 @@ const FormDHCPv6 = (props) => {
                                     className="form-control"
                                     placeholder={t('dhcp_form_range_start')}
                                     validate={[validateIpv6, validateRequired]}
-                                    disabled={!selectedInterface}
+                                    disabled={!interfaceIncludesIpv6}
                                 />
                             </div>
                             <div className="col">
@@ -91,16 +92,15 @@ const FormDHCPv6 = (props) => {
                         validate={[validateIsPositiveValue, validateRequired]}
                         normalizeOnBlur={toNumber}
                         min={0}
-                        disabled={!selectedInterface}
+                        disabled={!interfaceIncludesIpv6}
                     />
                 </div>
             </div>
-
             <div className="btn-list">
                 <button
                     type="submit"
                     className="btn btn-success btn-standard"
-                    disabled={submitting || invalid || processingConfig || !selectedInterface}
+                    disabled={submitting || invalid || processingConfig || !interfaceIncludesIpv6}
                 >
                     {t('save_config')}
                 </button>

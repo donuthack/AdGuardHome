@@ -28,7 +28,7 @@ const renderInterfaces = ((interfaces) => (
             }
 
             return (
-                <option value={name} key={name} disabled={onlyIPv6}>
+                <option value={name} key={name}>
                     {name} - {interfaceIP}
                 </option>
             );

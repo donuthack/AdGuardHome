@@ -24,12 +24,12 @@ const FormDHCPv4 = (props) => {
     } = props;
 
     const { t } = useTranslation();
-    const dhcpv4 = useSelector((store) => store.form[FORM_NAME.DHCPv4]);
+    const dhcpv4 = useSelector((state) => state.form[FORM_NAME.DHCPv4]);
     const v4 = dhcpv4?.values?.v4 ?? {};
     const dhcpv4Errors = dhcpv4?.syncErrors;
 
-    const dhcpInterfaces = useSelector((store) => store.form[FORM_NAME.DHCP_INTERFACES]);
-    const interface_name = dhcpInterfaces?.values?.interface_name ?? {};
+    const dhcpInterfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES]);
+    const interface_name = dhcpInterfaces?.values?.interface_name;
     const selectedInterface = !!interface_name;
     const dhcpInterfacesErrors = dhcpInterfaces?.syncErrors;
 
