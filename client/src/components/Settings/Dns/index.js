@@ -37,6 +37,4 @@ const Dns = () => {
     </>;
 };
 
-Dns.propTypes = {};
-
 export default Dns;

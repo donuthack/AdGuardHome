@@ -39,6 +39,4 @@ const EncryptionTopline = () => {
     return false;
 };
 
-EncryptionTopline.propTypes = {};
-
 export default EncryptionTopline;

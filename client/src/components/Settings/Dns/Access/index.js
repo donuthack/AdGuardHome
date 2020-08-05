@@ -33,6 +33,4 @@ const Access = () => {
     );
 };
 
-Access.propTypes = {};
-
 export default Access;

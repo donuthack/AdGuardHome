@@ -48,6 +48,4 @@ const Config = () => {
     );
 };
 
-Config.propTypes = {};
-
 export default Config;

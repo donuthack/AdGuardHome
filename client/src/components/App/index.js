@@ -37,7 +37,7 @@ import DnsBlocklist from '../../containers/DnsBlocklist';
 import DnsAllowlist from '../../containers/DnsAllowlist';
 import DnsRewrites from '../../containers/DnsRewrites';
 import CustomRules from '../../containers/CustomRules';
-import Services from '../../containers/Services';
+import Services from '../Filters/Services';
 
 const ROUTES = [
     {
@@ -171,8 +171,6 @@ const App = () => {
         </HashRouter>
     );
 };
-
-App.propTypes = {};
 
 renderRoute.propTypes = {
     path: propTypes.oneOfType([propTypes.string, propTypes.arrayOf(propTypes.string)]).isRequired,

@@ -18,6 +18,4 @@ const UpdateOverlay = () => {
     );
 };
 
-UpdateOverlay.propTypes = {};
-
 export default UpdateOverlay;

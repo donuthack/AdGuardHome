@@ -43,6 +43,4 @@ const UpdateTopline = () => {
     </Topline>;
 };
 
-UpdateTopline.propTypes = {};
-
 export default UpdateTopline;

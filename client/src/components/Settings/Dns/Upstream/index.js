@@ -45,6 +45,4 @@ const Upstream = () => {
     );
 };
 
-Upstream.propTypes = {};
-
 export default Upstream;
