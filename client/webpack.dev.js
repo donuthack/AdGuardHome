@@ -16,11 +16,16 @@ const importConfig = () => {
     try {
         const doc = yaml.safeLoad(fs.readFileSync('../AdguardHome.yaml', 'utf8'));
         const { bind_host, bind_port } = doc;
-        return { bind_host, bind_port };
+        return {
+            bind_host,
+            bind_port,
+        };
     } catch (e) {
         console.error(e);
-        console.warn(`Using default host: ${ZERO_HOST}, port: ${DEFAULT_PORT}`);
-        return { bind_host: ZERO_HOST, bind_port: DEFAULT_PORT };
+        return {
+            bind_host: ZERO_HOST,
+            bind_port: DEFAULT_PORT,
+        };
     }
 };
 
@@ -29,11 +34,12 @@ const getDevServerConfig = (proxyUrl = baseUrl) => {
     const { DEV_SERVER_PORT } = process.env;
 
     const devServerHost = host === ZERO_HOST ? LOCALHOST : host;
+    const devServerPort = DEV_SERVER_PORT || port + 8000;
 
     return {
         hot: true,
         host: devServerHost,
-        port: DEV_SERVER_PORT || port + 8000,
+        port: devServerPort,
         proxy: {
             [proxyUrl]: `http://${devServerHost}:${port}`,
         },
@@ -55,5 +61,5 @@ module.exports = merge(common, {
             },
         ],
     },
-    devServer: getDevServerConfig(baseUrl),
+    devServer: process.env.WEBPACK_DEV_SERVER ? getDevServerConfig(baseUrl) : undefined,
 });

@@ -11,7 +11,7 @@ const Version = () => {
         dnsVersion,
         processingVersion,
         checkUpdateFlag,
-    } = useSelector((state) => state.dashboard, shallowEqual);
+    } = useSelector((state) => state?.dashboard ?? {}, shallowEqual);
 
     const onClick = () => {
         dispatch(getVersion(true));
