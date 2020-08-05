@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter, Route } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
 import { hot } from 'react-hot-loader/root';
@@ -10,7 +10,7 @@ import './index.css';
 
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import { propTypes } from 'redux-form';
+import propTypes from 'prop-types';
 import Toasts from '../Toasts';
 import Footer from '../ui/Footer';
 import Status from '../ui/Status';
@@ -25,17 +25,24 @@ import { getLogsUrlParams, setHtmlLangAttr } from '../../helpers/helpers';
 import Header from '../Header';
 import { changeLanguage, getDnsStatus } from '../../actions';
 
-// todo: unify
-// todo: fix styles loading before lazy import
-// todo: fix eslint
-const Logs = lazy(() => import('../../containers/Logs'));
-const Clients = lazy(() => import('../../containers/Clients'));
-const Services = lazy(() => import('../Filters/Services'));
+import Dashboard from '../../containers/Dashboard';
+import Logs from '../../containers/Logs';
+import SetupGuide from '../../containers/SetupGuide';
+import Settings from '../../containers/Settings';
+import Dns from '../../containers/Dns';
+import Encryption from '../../containers/Encryption';
+import Dhcp from '../../containers/Dhcp';
+import Clients from '../../containers/Clients';
+import DnsBlocklist from '../../containers/DnsBlocklist';
+import DnsAllowlist from '../../containers/DnsAllowlist';
+import DnsRewrites from '../../containers/DnsRewrites';
+import CustomRules from '../../containers/CustomRules';
+import Services from '../../containers/Services';
 
 const ROUTES = [
     {
         path: MENU_URLS.root,
-        component: 'Dashboard',
+        component: Dashboard,
         exact: true,
     },
     {
@@ -44,23 +51,23 @@ const ROUTES = [
     },
     {
         path: MENU_URLS.guide,
-        component: 'SetupGuide',
+        component: SetupGuide,
     },
     {
         path: SETTINGS_URLS.settings,
-        component: 'Settings',
+        component: Settings,
     },
     {
         path: SETTINGS_URLS.dns,
-        component: 'Dns',
+        component: Dns,
     },
     {
         path: SETTINGS_URLS.encryption,
-        component: 'Encryption',
+        component: Encryption,
     },
     {
         path: SETTINGS_URLS.dhcp,
-        component: 'Dhcp',
+        component: Dhcp,
     },
     {
         path: SETTINGS_URLS.clients,
@@ -68,19 +75,19 @@ const ROUTES = [
     },
     {
         path: FILTERS_URLS.dns_blocklists,
-        component: 'DnsBlocklist',
+        component: DnsBlocklist,
     },
     {
         path: FILTERS_URLS.dns_allowlists,
-        component: 'DnsAllowlist',
+        component: DnsAllowlist,
     },
     {
         path: FILTERS_URLS.dns_rewrites,
-        component: 'DnsRewrites',
+        component: DnsRewrites,
     },
     {
         path: FILTERS_URLS.custom_rules,
-        component: 'CustomRules',
+        component: CustomRules,
     },
     {
         path: FILTERS_URLS.blocked_services,
@@ -92,10 +99,8 @@ const renderRoute = ({ path, component, exact }, idx) => <Route
     key={idx}
     exact={exact}
     path={path}
-    component={typeof component === 'string'
-        // todo: fix eslint warning
-        ? lazy(() => import(`../../containers/${component}`))
-        : component} />;
+    component={component}
+/>;
 
 const App = () => {
     const dispatch = useDispatch();
@@ -147,21 +152,19 @@ const App = () => {
                 {!processingEncryption && <EncryptionTopline />}
                 <LoadingBar className="loading-bar" updateTime={1000} />
                 <Header />
-                <Suspense fallback={<Loading className="h-100" />}>
-                    <div className="container container--wrap pb-5">
-                        {processing && <Loading />}
-                        {!isCoreRunning && (
-                            <div className="row row-cards">
-                                <div className="col-lg-12">
-                                    <Status reloadPage={reloadPage} message="dns_start" />
-                                    <Loading />
-                                </div>
+                <div className="container container--wrap pb-5">
+                    {processing && <Loading />}
+                    {!isCoreRunning && (
+                        <div className="row row-cards">
+                            <div className="col-lg-12">
+                                <Status reloadPage={reloadPage} message="dns_start" />
+                                <Loading />
                             </div>
-                        )}
-                        {!processing && isCoreRunning && ROUTES.map(renderRoute)}
-                    </div>
-                    <Footer />
-                </Suspense>
+                        </div>
+                    )}
+                    {!processing && isCoreRunning && ROUTES.map(renderRoute)}
+                </div>
+                <Footer />
                 <Toasts />
                 <Icons />
             </>
@@ -172,8 +175,8 @@ const App = () => {
 App.propTypes = {};
 
 renderRoute.propTypes = {
-    path: propTypes.oneOfType(propTypes.string, propTypes.arrayOf(propTypes.string)).isRequired,
-    component: propTypes.oneOfType(propTypes.string, propTypes.component).isRequired,
+    path: propTypes.oneOfType([propTypes.string, propTypes.arrayOf(propTypes.string)]).isRequired,
+    component: propTypes.element.isRequired,
     exact: propTypes.bool,
 };
 

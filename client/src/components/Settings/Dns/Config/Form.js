@@ -65,9 +65,9 @@ const Form = ({
     handleSubmit, submitting, invalid, processing,
 }) => {
     const { t } = useTranslation();
-    const { blocking_mode } = useSelector((
-        state,
-    ) => state.form[FORM_NAME.BLOCKING_MODE].values, shallowEqual);
+    const {
+        blocking_mode,
+    } = useSelector((state) => state.form[FORM_NAME.BLOCKING_MODE].values ?? {}, shallowEqual);
 
     return <form onSubmit={handleSubmit}>
         <div className="row">

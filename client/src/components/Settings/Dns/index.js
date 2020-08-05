@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Upstream from './Upstream';
 import Access from './Access';
 import Config from './Config';
@@ -14,8 +14,8 @@ import { getAccessList } from '../../../actions/access';
 const Dns = () => {
     const { t } = useTranslation();
     const dispatch = useDispatch();
-    const { processing } = useSelector((state) => state.access, shallowEqual);
-    const { processingGetConfig } = useSelector((state) => state.dnsConfig, shallowEqual);
+    const processing = useSelector((state) => state.access.processing);
+    const processingGetConfig = useSelector((state) => state.dnsConfig.processingGetConfig);
 
     const isDataLoading = processing || processingGetConfig;
 

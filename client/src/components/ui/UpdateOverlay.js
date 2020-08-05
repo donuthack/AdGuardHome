@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import './Overlay.css';
 
 const UpdateOverlay = () => {
-    const processingUpdate = useSelector((state) => state.dashboard?.processingUpdate);
+    const processingUpdate = useSelector((state) => state.dashboard.processingUpdate);
     const overlayClass = classnames('overlay', {
         'overlay--visible': processingUpdate,
     });

@@ -2,12 +2,12 @@ import React from 'react';
 import { Trans } from 'react-i18next';
 import isAfter from 'date-fns/is_after';
 import addDays from 'date-fns/add_days';
-import { shallowEqual, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Topline from './Topline';
 import { EMPTY_DATE } from '../../helpers/constants';
 
 const EncryptionTopline = () => {
-    const { not_after } = useSelector((state) => state.encryption, shallowEqual);
+    const not_after = useSelector((state) => state.encryption.not_after);
 
     if (not_after === EMPTY_DATE) {
         return null;
