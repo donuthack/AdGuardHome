@@ -27,7 +27,6 @@ import Interfaces from './Interfaces';
 const Dhcp = () => {
     const { t } = useTranslation();
     const dispatch = useDispatch();
-    const dhcp = useSelector((store) => store.dhcp, shallowEqual);
     const {
         processingStatus,
         processingConfig,
@@ -45,7 +44,7 @@ const Dhcp = () => {
         interface_name: interfaceName,
         enabled,
         dhcp_available,
-    } = dhcp;
+    } = useSelector((store) => store.dhcp, shallowEqual);
 
     const interface_name = useSelector((store) => store.form[FORM_NAME.DHCP_INTERFACES]
         ?.values?.interface_name);
@@ -71,14 +70,18 @@ const Dhcp = () => {
         }));
     };
 
+    const enteredSomeV4Value = Object.values(v4)
+        .some(Boolean);
+    const enteredSomeV6Value = Object.values(v6)
+        .some(Boolean);
+    const enteredSomeValue = enteredSomeV4Value || enteredSomeV6Value;
+
     const handleToggle = () => {
         const values = {
             enabled,
             interface_name,
-            v4: Object.values(v4)
-                .some(Boolean) ? v4 : {},
-            v6: Object.values(v6)
-                .some(Boolean) ? v6 : {},
+            v4: enteredSomeV4Value ? v4 : {},
+            v6: enteredSomeV6Value ? v6 : {},
         };
         dispatch(toggleDhcp(values));
     };
@@ -90,8 +93,8 @@ const Dhcp = () => {
         const filledConfig = interface_name
             && (Object.keys(v4)
                 .every(Boolean)
-            || Object.keys(v6)
-                .every(Boolean));
+                || Object.keys(v6)
+                    .every(Boolean));
 
         if (enabled) {
             return (
@@ -178,28 +181,26 @@ const Dhcp = () => {
         }
         if (check.staticIP.static === DHCP_STATUS_RESPONSE.NO && check.staticIP.ip
             && interfaceName) {
-            return (
-                <>
-                    <div className="text-secondary mb-2">
-                        <Trans
-                            components={[<strong key="0">example</strong>]}
-                            values={{
-                                interfaceName,
-                                ipAddress: check.staticIP.ip,
-                            }}
-                        >
-                            dhcp_dynamic_ip_found
-                        </Trans>
-                    </div>
-                    <hr className="mt-4 mb-4" />
-                </>
-            );
+            return <>
+                <div className="text-secondary mb-2">
+                    <Trans
+                        components={[<strong key="0">example</strong>]}
+                        values={{
+                            interfaceName,
+                            ipAddress: check.staticIP.ip,
+                        }}
+                    >
+                        dhcp_dynamic_ip_found
+                    </Trans>
+                </div>
+                <hr className="mt-4 mb-4" />
+            </>;
         }
 
         return '';
     };
 
-    const statusButtonClass = classNames('btn btn-sm', {
+    const statusButtonClass = classNames('btn btn-sm mx-2', {
         'btn-loading btn-primary': processingStatus,
         'btn-outline-primary': !processingStatus,
     });
@@ -254,77 +255,83 @@ const Dhcp = () => {
                     >
                         <Trans>check_dhcp_servers</Trans>
                     </button>
+                    <button
+                        type="button"
+                        className='btn btn-sm mx-2 btn-outline-secondary'
+                        disabled={!enteredSomeValue || processingConfig}
+                        onClick={clear}
+                    >
+                        <Trans>reset_settings</Trans>
+                    </button>
                 </div>
             </div>
         </PageTitle>
         {!processing && !processingInterfaces && <>
-                <Interfaces
-                    initialValues={{ interface_name: interfaceName }}
-                />
+            <Interfaces
+                initialValues={{ interface_name: interfaceName }}
+            />
+            <Card
+                title={t('dhcp_ipv4_settings')}
+                bodyType="card-body box-body--settings"
+            >
+                <div>
+                    <FormDHCPv4
+                        onSubmit={handleSubmit}
+                        initialValues={{ v4: initialV4 }}
+                        processingConfig={processingConfig}
+                    />
+                    {warnings}
+                </div>
+            </Card>
+            <Card
+                title={t('dhcp_ipv6_settings')}
+                bodyType="card-body box-body--settings"
+            >
+                <div>
+                    <FormDHCPv6
+                        onSubmit={handleSubmit}
+                        initialValues={{ v6: initialV6 }}
+                        processingConfig={processingConfig}
+                    />
+                    {warnings}
+                </div>
+            </Card>
+            {enabled && (
                 <Card
-                    title={t('dhcp_ipv4_settings')}
-                    bodyType="card-body box-body--settings"
-                >
-                    <div>
-                        <FormDHCPv4
-                            onSubmit={handleSubmit}
-                            initialValues={{ v4: initialV4 }}
-                            processingConfig={processingConfig}
-                            clear={clear}
-                        />
-                        {warnings}
-                    </div>
-                </Card>
-                <Card
-                    title={t('dhcp_ipv6_settings')}
-                    bodyType="card-body box-body--settings"
-                >
-                    <div>
-                        <FormDHCPv6
-                            onSubmit={handleSubmit}
-                            initialValues={{ v6: initialV6 }}
-                            processingConfig={processingConfig}
-                            clear={clear}
-                        />
-                        {warnings}
-                    </div>
-                </Card>
-                {enabled && (
-                    <Card
-                        title={t('dhcp_leases')}
-                        bodyType="card-body box-body--settings"
-                    >
-                        <div className="row">
-                            <div className="col">
-                                <Leases leases={leases} />
-                            </div>
-                        </div>
-                    </Card>
-                )}
-                <Card
-                    title={t('dhcp_static_leases')}
+                    title={t('dhcp_leases')}
                     bodyType="card-body box-body--settings"
                 >
                     <div className="row">
-                        <div className="col-12">
-                            <StaticLeases
-                                staticLeases={staticLeases}
-                                isModalOpen={isModalOpen}
-                                processingAdding={processingAdding}
-                                processingDeleting={processingDeleting}
-                            />
-                        </div>
-                        <div className="col-12">
-                            <button
-                                type="button"
-                                className="btn btn-success btn-standard mt-3"
-                                onClick={toggleModal}
-                            >
-                                <Trans>dhcp_add_static_lease</Trans>
-                            </button>
+                        <div className="col">
+                            <Leases leases={leases} />
                         </div>
                     </div>
                 </Card>
+            )}
+            <Card
+                title={t('dhcp_static_leases')}
+                bodyType="card-body box-body--settings"
+            >
+                <div className="row">
+                    <div className="col-12">
+                        <StaticLeases
+                            staticLeases={staticLeases}
+                            isModalOpen={isModalOpen}
+                            processingAdding={processingAdding}
+                            processingDeleting={processingDeleting}
+                        />
+                    </div>
+                    <div className="col-12">
+                        <button
+                            type="button"
+                            className="btn btn-success btn-standard mt-3"
+                            onClick={toggleModal}
+                        >
+                            <Trans>dhcp_add_static_lease</Trans>
+                        </button>
+                    </div>
+                </div>
+            </Card>
         </>}
     </>;
 };

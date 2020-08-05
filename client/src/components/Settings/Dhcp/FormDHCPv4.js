@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Field, reduxForm } from 'redux-form';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import {
     renderInputField,
@@ -21,7 +21,6 @@ const FormDHCPv4 = (props) => {
         handleSubmit,
         submitting,
         processingConfig,
-        clear,
     } = props;
 
     const { t } = useTranslation();
@@ -122,14 +121,6 @@ const FormDHCPv4 = (props) => {
                 >
                     {t('save_config')}
                 </button>
-                <button
-                    type="button"
-                    className="btn btn-secondary btn-standart"
-                    disabled={submitting || processingConfig}
-                    onClick={clear}
-                >
-                    <Trans>reset_settings</Trans>
-                </button>
             </div>
         </form>
     );
@@ -142,7 +133,6 @@ FormDHCPv4.propTypes = {
     processingConfig: PropTypes.bool.isRequired,
     change: PropTypes.func.isRequired,
     reset: PropTypes.func.isRequired,
-    clear: PropTypes.func.isRequired,
 };
 
 export default reduxForm({
