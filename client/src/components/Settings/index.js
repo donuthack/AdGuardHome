@@ -45,11 +45,11 @@ class Settings extends Component {
     }
 
     renderSettings = (settings) => getObjectKeysSorted(settings, ORDER_KEY)
-        ?.map((key) => {
+        .map((key) => {
             const setting = settings[key];
             const { enabled } = setting;
             return <Checkbox
-                {...settings[key]}
+                {...setting}
                 key={key}
                 handleChange={() => this.props.toggleSetting(key, enabled)}
             />;
