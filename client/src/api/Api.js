@@ -2,11 +2,10 @@ import axios from 'axios';
 
 import { getPathWithQueryString } from '../helpers/helpers';
 import { R_PATH_LAST_PART } from '../helpers/constants';
-
-const { baseUrl } = require('../../package.json');
+import { BASE_URL } from '../../constants';
 
 class Api {
-    baseUrl = baseUrl;
+    baseUrl = BASE_URL;
 
     async makeRequest(path, method = 'POST', config) {
         try {
@@ -33,13 +32,25 @@ class Api {
     }
 
     // Global methods
-    GLOBAL_STATUS = { path: 'status', method: 'GET' };
+    GLOBAL_STATUS = {
+        path: 'status',
+        method: 'GET',
+    };
 
-    GLOBAL_TEST_UPSTREAM_DNS = { path: 'test_upstream_dns', method: 'POST' };
+    GLOBAL_TEST_UPSTREAM_DNS = {
+        path: 'test_upstream_dns',
+        method: 'POST',
+    };
 
-    GLOBAL_VERSION = { path: 'version.json', method: 'POST' };
+    GLOBAL_VERSION = {
+        path: 'version.json',
+        method: 'POST',
+    };
 
-    GLOBAL_UPDATE = { path: 'update', method: 'POST' };
+    GLOBAL_UPDATE = {
+        path: 'update',
+        method: 'POST',
+    };
 
     getGlobalStatus() {
         const { path, method } = this.GLOBAL_STATUS;
@@ -70,21 +81,45 @@ class Api {
     }
 
     // Filtering
-    FILTERING_STATUS = { path: 'filtering/status', method: 'GET' };
+    FILTERING_STATUS = {
+        path: 'filtering/status',
+        method: 'GET',
+    };
 
-    FILTERING_ADD_FILTER = { path: 'filtering/add_url', method: 'POST' };
+    FILTERING_ADD_FILTER = {
+        path: 'filtering/add_url',
+        method: 'POST',
+    };
 
-    FILTERING_REMOVE_FILTER = { path: 'filtering/remove_url', method: 'POST' };
+    FILTERING_REMOVE_FILTER = {
+        path: 'filtering/remove_url',
+        method: 'POST',
+    };
 
-    FILTERING_SET_RULES = { path: 'filtering/set_rules', method: 'POST' };
+    FILTERING_SET_RULES = {
+        path: 'filtering/set_rules',
+        method: 'POST',
+    };
 
-    FILTERING_REFRESH = { path: 'filtering/refresh', method: 'POST' };
+    FILTERING_REFRESH = {
+        path: 'filtering/refresh',
+        method: 'POST',
+    };
 
-    FILTERING_SET_URL = { path: 'filtering/set_url', method: 'POST' };
+    FILTERING_SET_URL = {
+        path: 'filtering/set_url',
+        method: 'POST',
+    };
 
-    FILTERING_CONFIG = { path: 'filtering/config', method: 'POST' };
+    FILTERING_CONFIG = {
+        path: 'filtering/config',
+        method: 'POST',
+    };
 
-    FILTERING_CHECK_HOST = { path: 'filtering/check_host', method: 'GET' };
+    FILTERING_CHECK_HOST = {
+        path: 'filtering/check_host',
+        method: 'GET',
+    };
 
     getFilteringStatus() {
         const { path, method } = this.FILTERING_STATUS;
@@ -155,11 +190,20 @@ class Api {
     }
 
     // Parental
-    PARENTAL_STATUS = { path: 'parental/status', method: 'GET' };
+    PARENTAL_STATUS = {
+        path: 'parental/status',
+        method: 'GET',
+    };
 
-    PARENTAL_ENABLE = { path: 'parental/enable', method: 'POST' };
+    PARENTAL_ENABLE = {
+        path: 'parental/enable',
+        method: 'POST',
+    };
 
-    PARENTAL_DISABLE = { path: 'parental/disable', method: 'POST' };
+    PARENTAL_DISABLE = {
+        path: 'parental/disable',
+        method: 'POST',
+    };
 
     getParentalStatus() {
         const { path, method } = this.PARENTAL_STATUS;
@@ -182,11 +226,20 @@ class Api {
     }
 
     // Safebrowsing
-    SAFEBROWSING_STATUS = { path: 'safebrowsing/status', method: 'GET' };
+    SAFEBROWSING_STATUS = {
+        path: 'safebrowsing/status',
+        method: 'GET',
+    };
 
-    SAFEBROWSING_ENABLE = { path: 'safebrowsing/enable', method: 'POST' };
+    SAFEBROWSING_ENABLE = {
+        path: 'safebrowsing/enable',
+        method: 'POST',
+    };
 
-    SAFEBROWSING_DISABLE = { path: 'safebrowsing/disable', method: 'POST' };
+    SAFEBROWSING_DISABLE = {
+        path: 'safebrowsing/disable',
+        method: 'POST',
+    };
 
     getSafebrowsingStatus() {
         const { path, method } = this.SAFEBROWSING_STATUS;
@@ -204,11 +257,20 @@ class Api {
     }
 
     // Safesearch
-    SAFESEARCH_STATUS = { path: 'safesearch/status', method: 'GET' };
+    SAFESEARCH_STATUS = {
+        path: 'safesearch/status',
+        method: 'GET',
+    };
 
-    SAFESEARCH_ENABLE = { path: 'safesearch/enable', method: 'POST' };
+    SAFESEARCH_ENABLE = {
+        path: 'safesearch/enable',
+        method: 'POST',
+    };
 
-    SAFESEARCH_DISABLE = { path: 'safesearch/disable', method: 'POST' };
+    SAFESEARCH_DISABLE = {
+        path: 'safesearch/disable',
+        method: 'POST',
+    };
 
     getSafesearchStatus() {
         const { path, method } = this.SAFESEARCH_STATUS;
@@ -226,9 +288,15 @@ class Api {
     }
 
     // Language
-    CURRENT_LANGUAGE = { path: 'i18n/current_language', method: 'GET' };
+    CURRENT_LANGUAGE = {
+        path: 'i18n/current_language',
+        method: 'GET',
+    };
 
-    CHANGE_LANGUAGE = { path: 'i18n/change_language', method: 'POST' };
+    CHANGE_LANGUAGE = {
+        path: 'i18n/change_language',
+        method: 'POST',
+    };
 
     getCurrentLanguage() {
         const { path, method } = this.CURRENT_LANGUAGE;
@@ -245,19 +313,40 @@ class Api {
     }
 
     // DHCP
-    DHCP_STATUS = { path: 'dhcp/status', method: 'GET' };
+    DHCP_STATUS = {
+        path: 'dhcp/status',
+        method: 'GET',
+    };
 
-    DHCP_SET_CONFIG = { path: 'dhcp/set_config', method: 'POST' };
+    DHCP_SET_CONFIG = {
+        path: 'dhcp/set_config',
+        method: 'POST',
+    };
 
-    DHCP_FIND_ACTIVE = { path: 'dhcp/find_active_dhcp', method: 'POST' };
+    DHCP_FIND_ACTIVE = {
+        path: 'dhcp/find_active_dhcp',
+        method: 'POST',
+    };
 
-    DHCP_INTERFACES = { path: 'dhcp/interfaces', method: 'GET' };
+    DHCP_INTERFACES = {
+        path: 'dhcp/interfaces',
+        method: 'GET',
+    };
 
-    DHCP_ADD_STATIC_LEASE = { path: 'dhcp/add_static_lease', method: 'POST' };
+    DHCP_ADD_STATIC_LEASE = {
+        path: 'dhcp/add_static_lease',
+        method: 'POST',
+    };
 
-    DHCP_REMOVE_STATIC_LEASE = { path: 'dhcp/remove_static_lease', method: 'POST' };
+    DHCP_REMOVE_STATIC_LEASE = {
+        path: 'dhcp/remove_static_lease',
+        method: 'POST',
+    };
 
-    DHCP_RESET = { path: 'dhcp/reset', method: 'POST' };
+    DHCP_RESET = {
+        path: 'dhcp/reset',
+        method: 'POST',
+    };
 
     getDhcpStatus() {
         const { path, method } = this.DHCP_STATUS;
@@ -311,11 +400,20 @@ class Api {
     }
 
     // Installation
-    INSTALL_GET_ADDRESSES = { path: 'install/get_addresses', method: 'GET' };
+    INSTALL_GET_ADDRESSES = {
+        path: 'install/get_addresses',
+        method: 'GET',
+    };
 
-    INSTALL_CONFIGURE = { path: 'install/configure', method: 'POST' };
+    INSTALL_CONFIGURE = {
+        path: 'install/configure',
+        method: 'POST',
+    };
 
-    INSTALL_CHECK_CONFIG = { path: 'install/check_config', method: 'POST' };
+    INSTALL_CHECK_CONFIG = {
+        path: 'install/check_config',
+        method: 'POST',
+    };
 
     getDefaultAddresses() {
         const { path, method } = this.INSTALL_GET_ADDRESSES;
@@ -341,11 +439,20 @@ class Api {
     }
 
     // DNS-over-HTTPS and DNS-over-TLS
-    TLS_STATUS = { path: 'tls/status', method: 'GET' };
+    TLS_STATUS = {
+        path: 'tls/status',
+        method: 'GET',
+    };
 
-    TLS_CONFIG = { path: 'tls/configure', method: 'POST' };
+    TLS_CONFIG = {
+        path: 'tls/configure',
+        method: 'POST',
+    };
 
-    TLS_VALIDATE = { path: 'tls/validate', method: 'POST' };
+    TLS_VALIDATE = {
+        path: 'tls/validate',
+        method: 'POST',
+    };
 
     getTlsStatus() {
         const { path, method } = this.TLS_STATUS;
@@ -371,15 +478,30 @@ class Api {
     }
 
     // Per-client settings
-    GET_CLIENTS = { path: 'clients', method: 'GET' };
+    GET_CLIENTS = {
+        path: 'clients',
+        method: 'GET',
+    };
 
-    FIND_CLIENTS = { path: 'clients/find', method: 'GET' };
+    FIND_CLIENTS = {
+        path: 'clients/find',
+        method: 'GET',
+    };
 
-    ADD_CLIENT = { path: 'clients/add', method: 'POST' };
+    ADD_CLIENT = {
+        path: 'clients/add',
+        method: 'POST',
+    };
 
-    DELETE_CLIENT = { path: 'clients/delete', method: 'POST' };
+    DELETE_CLIENT = {
+        path: 'clients/delete',
+        method: 'POST',
+    };
 
-    UPDATE_CLIENT = { path: 'clients/update', method: 'POST' };
+    UPDATE_CLIENT = {
+        path: 'clients/update',
+        method: 'POST',
+    };
 
     getClients() {
         const { path, method } = this.GET_CLIENTS;
@@ -420,9 +542,15 @@ class Api {
     }
 
     // DNS access settings
-    ACCESS_LIST = { path: 'access/list', method: 'GET' };
+    ACCESS_LIST = {
+        path: 'access/list',
+        method: 'GET',
+    };
 
-    ACCESS_SET = { path: 'access/set', method: 'POST' };
+    ACCESS_SET = {
+        path: 'access/set',
+        method: 'POST',
+    };
 
     getAccessList() {
         const { path, method } = this.ACCESS_LIST;
@@ -439,11 +567,20 @@ class Api {
     }
 
     // DNS rewrites
-    REWRITES_LIST = { path: 'rewrite/list', method: 'GET' };
+    REWRITES_LIST = {
+        path: 'rewrite/list',
+        method: 'GET',
+    };
 
-    REWRITE_ADD = { path: 'rewrite/add', method: 'POST' };
+    REWRITE_ADD = {
+        path: 'rewrite/add',
+        method: 'POST',
+    };
 
-    REWRITE_DELETE = { path: 'rewrite/delete', method: 'POST' };
+    REWRITE_DELETE = {
+        path: 'rewrite/delete',
+        method: 'POST',
+    };
 
     getRewritesList() {
         const { path, method } = this.REWRITES_LIST;
@@ -469,9 +606,15 @@ class Api {
     }
 
     // Blocked services
-    BLOCKED_SERVICES_LIST = { path: 'blocked_services/list', method: 'GET' };
+    BLOCKED_SERVICES_LIST = {
+        path: 'blocked_services/list',
+        method: 'GET',
+    };
 
-    BLOCKED_SERVICES_SET = { path: 'blocked_services/set', method: 'POST' };
+    BLOCKED_SERVICES_SET = {
+        path: 'blocked_services/set',
+        method: 'POST',
+    };
 
     getBlockedServices() {
         const { path, method } = this.BLOCKED_SERVICES_LIST;
@@ -488,13 +631,25 @@ class Api {
     }
 
     // Settings for statistics
-    GET_STATS = { path: 'stats', method: 'GET' };
+    GET_STATS = {
+        path: 'stats',
+        method: 'GET',
+    };
 
-    STATS_INFO = { path: 'stats_info', method: 'GET' };
+    STATS_INFO = {
+        path: 'stats_info',
+        method: 'GET',
+    };
 
-    STATS_CONFIG = { path: 'stats_config', method: 'POST' };
+    STATS_CONFIG = {
+        path: 'stats_config',
+        method: 'POST',
+    };
 
-    STATS_RESET = { path: 'stats_reset', method: 'POST' };
+    STATS_RESET = {
+        path: 'stats_reset',
+        method: 'POST',
+    };
 
     getStats() {
         const { path, method } = this.GET_STATS;
@@ -521,13 +676,25 @@ class Api {
     }
 
     // Query log
-    GET_QUERY_LOG = { path: 'querylog', method: 'GET' };
+    GET_QUERY_LOG = {
+        path: 'querylog',
+        method: 'GET',
+    };
 
-    QUERY_LOG_CONFIG = { path: 'querylog_config', method: 'POST' };
+    QUERY_LOG_CONFIG = {
+        path: 'querylog_config',
+        method: 'POST',
+    };
 
-    QUERY_LOG_INFO = { path: 'querylog_info', method: 'GET' };
+    QUERY_LOG_INFO = {
+        path: 'querylog_info',
+        method: 'GET',
+    };
 
-    QUERY_LOG_CLEAR = { path: 'querylog_clear', method: 'POST' };
+    QUERY_LOG_CLEAR = {
+        path: 'querylog_clear',
+        method: 'POST',
+    };
 
     getQueryLog(params) {
         const { path, method } = this.GET_QUERY_LOG;
@@ -555,7 +722,10 @@ class Api {
     }
 
     // Login
-    LOGIN = { path: 'login', method: 'POST' };
+    LOGIN = {
+        path: 'login',
+        method: 'POST',
+    };
 
     login(data) {
         const { path, method } = this.LOGIN;
@@ -567,7 +737,10 @@ class Api {
     }
 
     // Profile
-    GET_PROFILE = { path: 'profile', method: 'GET' };
+    GET_PROFILE = {
+        path: 'profile',
+        method: 'GET',
+    };
 
     getProfile() {
         const { path, method } = this.GET_PROFILE;
@@ -575,9 +748,15 @@ class Api {
     }
 
     // DNS config
-    GET_DNS_CONFIG = { path: 'dns_info', method: 'GET' };
+    GET_DNS_CONFIG = {
+        path: 'dns_info',
+        method: 'GET',
+    };
 
-    SET_DNS_CONFIG = { path: 'dns_config', method: 'POST' };
+    SET_DNS_CONFIG = {
+        path: 'dns_config',
+        method: 'POST',
+    };
 
     getDnsConfig() {
         const { path, method } = this.GET_DNS_CONFIG;

@@ -12,11 +12,6 @@
         "test": "jest",
         "test:watch": "jest --watch"
     },
-    "BUILD_ENVS": {
-        "dev": "development",
-        "prod": "production"
-    },
-    "baseUrl": "/control",
     "dependencies": {
         "@hot-loader/react-dom": "^16.13.0",
         "@nivo/line": "^0.49.1",

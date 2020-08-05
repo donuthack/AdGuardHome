@@ -1,8 +1,8 @@
 const merge = require('webpack-merge');
 const yaml = require('js-yaml');
 const fs = require('fs');
-const { baseUrl } = require('./package.json');
 const common = require('./webpack.common.js');
+const { BASE_URL } = require('./constants');
 
 const ZERO_HOST = '0.0.0.0';
 const LOCALHOST = '127.0.0.1';
@@ -29,7 +29,7 @@ const importConfig = () => {
     }
 };
 
-const getDevServerConfig = (proxyUrl = baseUrl) => {
+const getDevServerConfig = (proxyUrl = BASE_URL) => {
     const { bind_host: host, bind_port: port } = importConfig();
     const { DEV_SERVER_PORT } = process.env;
 
@@ -61,5 +61,5 @@ module.exports = merge(common, {
             },
         ],
     },
-    devServer: process.env.WEBPACK_DEV_SERVER ? getDevServerConfig(baseUrl) : undefined,
+    devServer: process.env.WEBPACK_DEV_SERVER ? getDevServerConfig(BASE_URL) : undefined,
 });

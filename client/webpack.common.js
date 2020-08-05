@@ -5,6 +5,7 @@ const flexBugsFixes = require('postcss-flexbugs-fixes');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { BUILD_ENVS } = require('./constants');
 
 const RESOURCES_PATH = path.resolve(__dirname);
 const ENTRY_REACT = path.resolve(RESOURCES_PATH, 'src/index.js');
@@ -17,8 +18,6 @@ const ASSETS_PATH = path.resolve(RESOURCES_PATH, 'public/assets');
 
 const PUBLIC_PATH = path.resolve(__dirname, '../build/static');
 const PUBLIC_ASSETS_PATH = path.resolve(PUBLIC_PATH, 'assets');
-
-const { BUILD_ENVS } = require('./package.json');
 
 const BUILD_ENV = BUILD_ENVS[process.env.BUILD_ENV];
 
