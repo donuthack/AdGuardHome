@@ -384,12 +384,15 @@ export const findActiveDhcp = (name) => async (dispatch, getState) => {
                 dispatch(addErrorToast({ error: staticIP.error }));
             }
         } else if (staticIP.static === DHCP_STATUS_RESPONSE.NO && staticIP.ip && interface_name) {
-            /* todo: replace to
-                 <Trans components={[<strong key="0">example</strong>]} values={{
-                interface_name,
+            const message = i18next.t('dhcp_dynamic_ip_found', {
+                interfaceName: interface_name,
                 ipAddress: staticIP.ip,
-            }}>dhcp_dynamic_ip_found</Trans> */
-            dispatch(addSuccessToast('dhcp_dynamic_ip_found'));
+                interpolation: {
+                    prefix: '<0>{{',
+                    suffix: '}}</0>',
+                },
+            });
+            dispatch(addSuccessToast(message));
         } else if (staticIP.static === DHCP_STATUS_RESPONSE.YES) {
             dispatch(addSuccessToast('dhcp_found'));
         }
