@@ -1,6 +1,7 @@
 import { handleActions } from 'redux-actions';
 import * as actions from '../actions';
 
+// todo: figure out if we cat get rid of redux-form state duplication
 const dhcp = handleActions(
     {
         [actions.getDhcpStatusRequest]: (state) => ({
@@ -94,12 +95,15 @@ const dhcp = handleActions(
             const { v4, v6 } = state;
             const newConfigV4 = { ...v4, ...payload.v4 };
             const newConfigV6 = { ...v6, ...payload.v6 };
+
             const newState = {
                 ...state,
                 v4: newConfigV4,
                 v6: newConfigV6,
+                interface_name: payload.interface_name,
                 processingConfig: false,
             };
+
             return newState;
         },
 

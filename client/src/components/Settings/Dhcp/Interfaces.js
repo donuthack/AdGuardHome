@@ -11,48 +11,43 @@ import {
     validateRequiredValue,
 } from '../../../helpers/validators';
 
-const renderInterfaces = ((interfaces) => (
-    Object.keys(interfaces)
-        .map((item) => {
-            const option = interfaces[item];
-            const { name } = option;
-            const [interfaceIP] = option.ip_addresses;
+const renderInterfaces = (interfaces) => Object.keys(interfaces)
+    .map((item) => {
+        const option = interfaces[item];
+        const { name } = option;
+        const [interfaceIP] = option.ip_addresses;
+        // todo: display first ipv4 and ipv6 after api is updated
+        return <option value={name} key={name}>
+            {name} - {interfaceIP}
+        </option>;
+    });
 
-            return (
-                <option value={name} key={name}>
-                    {name} - {interfaceIP}
-                </option>
-            );
-        })
-));
-
-const renderInterfaceValues = ((interfaceValues) => (
-    <ul className="list-unstyled mt-1 mb-3">
-        <li>
-            <span className="interface__title">MTU: </span>
-            {interfaceValues.mtu}
-        </li>
-        <li>
-            <span className="interface__title"><Trans>dhcp_hardware_address</Trans>: </span>
-            {interfaceValues.hardware_address}
-        </li>
-        <li>
-            <span className="interface__title"><Trans>dhcp_ip_addresses</Trans>: </span>
-            {interfaceValues.ip_addresses
-                .map((ip) => <span key={ip} className="interface__ip">{ip}</span>)}
-        </li>
-    </ul>
-));
+const renderInterfaceValues = (interfaceValues) => <ul className="list-unstyled mt-1 mb-3">
+    <li>
+        <span className="interface__title">MTU: </span>
+        {interfaceValues.mtu}
+    </li>
+    <li>
+        <span className="interface__title"><Trans>dhcp_hardware_address</Trans>: </span>
+        {interfaceValues.hardware_address}
+    </li>
+    <li>
+        <span className="interface__title"><Trans>dhcp_ip_addresses</Trans>: </span>
+        {interfaceValues.ip_addresses
+            .map((ip) => <span key={ip} className="interface__ip">{ip}</span>)}
+    </li>
+</ul>;
 
 const Interfaces = () => {
+    const { t } = useTranslation();
+
     const {
         processingInterfaces,
         interfaces,
         enabled,
     } = useSelector((store) => store.dhcp, shallowEqual);
 
-    const { t } = useTranslation();
-    const interfaceValue = useSelector(
+    const interface_name = useSelector(
         (store) => store.form[FORM_NAME.DHCP_INTERFACES]?.values?.interface_name,
     );
 
@@ -67,22 +62,20 @@ const Interfaces = () => {
                         validate={[validateRequiredValue]}
                         label='dhcp_interface_select'
                     >
-                        <option value="" disabled={enabled}>
+                        <option value='' disabled={enabled}>
                             {t('dhcp_interface_select')}
                         </option>
                         {renderInterfaces(interfaces)}
                     </Field>
                 </div>
             </div>
-            {interfaceValue
+            {interface_name
             && <div className="col-sm-12 col-md-6">
-                {interfaces[interfaceValue]
-                && renderInterfaceValues(interfaces[interfaceValue])}
+                {interfaces[interface_name]
+                && renderInterfaceValues(interfaces[interface_name])}
             </div>}
         </div>;
 };
-
-Interfaces.propTypes = {};
 
 export default reduxForm({
     form: FORM_NAME.DHCP_INTERFACES,

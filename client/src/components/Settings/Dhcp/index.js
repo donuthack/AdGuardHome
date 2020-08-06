@@ -1,10 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames';
 import { destroy } from 'redux-form';
-import { DHCP_FORM_NAMES, DHCP_STATUS_RESPONSE, FORM_NAME } from '../../../helpers/constants';
+import {
+    DHCP_DESCRIPTION_PLACEHOLDERS,
+    DHCP_FORM_NAMES,
+    DHCP_STATUS_RESPONSE,
+    FORM_NAME,
+} from '../../../helpers/constants';
 import Leases from './Leases';
 import StaticLeases from './StaticLeases/index';
 import Card from '../../ui/Card';
@@ -23,6 +28,10 @@ import {
 import FormDHCPv4 from './FormDHCPv4';
 import FormDHCPv6 from './FormDHCPv6';
 import Interfaces from './Interfaces';
+import {
+    calculateDhcpPlaceholdersIpv4,
+    calculateDhcpPlaceholdersIpv6,
+} from '../../../helpers/helpers';
 
 const Dhcp = () => {
     const { t } = useTranslation();
@@ -44,15 +53,39 @@ const Dhcp = () => {
         interface_name: interfaceName,
         enabled,
         dhcp_available,
-    } = useSelector((store) => store.dhcp, shallowEqual);
+        interfaces,
+    } = useSelector((state) => state.dhcp, shallowEqual);
 
-    const interface_name = useSelector((store) => store.form[FORM_NAME.DHCP_INTERFACES]
-        ?.values?.interface_name);
+    const dhcpInterfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES]);
+    const interface_name = dhcpInterfaces?.values?.interface_name;
+
+    const dhcpInterface = useSelector((state) => state.dhcp?.interfaces?.[interface_name]);
+    const isInterfaceIncludesIpv6 = dhcpInterface?.ip_addresses.some((ip) => ip.includes(':')) ?? false;
 
     useEffect(() => {
         dispatch(getDhcpStatus());
         dispatch(getDhcpInterfaces());
     }, []);
+
+    const [ipv4placeholders, setIpv4Placeholders] = useState(DHCP_DESCRIPTION_PLACEHOLDERS.ipv4);
+    const [ipv6placeholders, setIpv6Placeholders] = useState(DHCP_DESCRIPTION_PLACEHOLDERS.ipv6);
+
+    useEffect(() => {
+        const [ip] = interfaces?.[interface_name]?.ip_addresses ?? [];
+
+        const isIpv6 = ip?.includes(':');
+
+        const v4placeholders = ip && !isIpv6
+            ? calculateDhcpPlaceholdersIpv4(ip)
+            : DHCP_DESCRIPTION_PLACEHOLDERS.ipv4;
+
+        const v6placeholders = ip && isIpv6
+            ? calculateDhcpPlaceholdersIpv6()
+            : DHCP_DESCRIPTION_PLACEHOLDERS.ipv6;
+
+        setIpv4Placeholders(v4placeholders);
+        setIpv6Placeholders(v6placeholders);
+    }, [interface_name]);
 
     const clear = () => {
         // eslint-disable-next-line no-alert
@@ -74,7 +107,7 @@ const Dhcp = () => {
         .some(Boolean);
     const enteredSomeV6Value = Object.values(v6)
         .some(Boolean);
-    const enteredSomeValue = enteredSomeV4Value || enteredSomeV6Value;
+    const enteredSomeValue = enteredSomeV4Value || enteredSomeV6Value || interfaceName;
 
     const handleToggle = () => {
         const values = {
@@ -90,11 +123,9 @@ const Dhcp = () => {
         const otherDhcpFound = check?.otherServer
             && check.otherServer.found === DHCP_STATUS_RESPONSE.YES;
 
-        const filledConfig = interface_name
-            && (Object.keys(v4)
-                .every(Boolean)
-                || Object.keys(v6)
-                    .every(Boolean));
+        const filledConfig = interface_name && (Object.keys(v4)
+            .every(Boolean) || Object.keys(v6)
+            .every(Boolean));
 
         if (enabled) {
             return (
@@ -138,19 +169,15 @@ const Dhcp = () => {
             );
         }
 
-        return (
-            <div className="mb-2">
-                {found === DHCP_STATUS_RESPONSE.YES ? (
-                    <div className="text-danger">
-                        <Trans>dhcp_found</Trans>
-                    </div>
-                ) : (
-                    <div className="text-secondary">
-                        <Trans>dhcp_not_found</Trans>
-                    </div>
-                )}
-            </div>
-        );
+        return <div className="mb-2">
+            {found === DHCP_STATUS_RESPONSE.YES
+                ? <div className="text-danger">
+                    <Trans>dhcp_found</Trans>
+                </div>
+                : <div className="text-secondary">
+                    <Trans>dhcp_not_found</Trans>
+                </div>}
+        </div>;
     };
 
     const getDhcpWarning = (check) => {
@@ -158,11 +185,9 @@ const Dhcp = () => {
             return '';
         }
 
-        return (
-            <div className="text-danger">
-                <Trans>dhcp_warning</Trans>
-            </div>
-        );
+        return <div className="text-danger">
+            <Trans>dhcp_warning</Trans>
+        </div>;
     };
 
     const statusButtonClass = classNames('btn btn-sm mx-2', {
@@ -230,7 +255,8 @@ const Dhcp = () => {
                 </div>
             </div>
         </PageTitle>
-        {!processing && !processingInterfaces && <>
+        {!processing && !processingInterfaces
+        && <>
             <Interfaces
                 initialValues={{ interface_name: interfaceName }}
             />
@@ -243,6 +269,7 @@ const Dhcp = () => {
                         onSubmit={handleSubmit}
                         initialValues={{ v4: initialV4 }}
                         processingConfig={processingConfig}
+                        ipv4placeholders={ipv4placeholders}
                     />
                     {warnings}
                 </div>
@@ -256,6 +283,8 @@ const Dhcp = () => {
                         onSubmit={handleSubmit}
                         initialValues={{ v6: initialV6 }}
                         processingConfig={processingConfig}
+                        ipv6placeholders={ipv6placeholders}
+                        isInterfaceIncludesIpv6={isInterfaceIncludesIpv6}
                     />
                     {warnings}
                 </div>

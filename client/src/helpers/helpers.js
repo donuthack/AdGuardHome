@@ -19,6 +19,7 @@ import {
     DEFAULT_LANGUAGE,
     DEFAULT_TIME_FORMAT,
     DETAILED_DATE_FORMAT_OPTIONS,
+    DHCP_VALUES_PLACEHOLDERS,
     FILTERED,
     FILTERED_STATUS,
     IP_MATCH_LIST_STATUS,
@@ -669,6 +670,47 @@ export const getLogsUrlParams = (search, response_status) => `?${queryString.str
 })}`;
 
 export const processContent = (content) => (Array.isArray(content)
-    ? content.filter(([, value]) => value).reduce((acc, val) => acc.concat(val), [])
+    ? content.filter(([, value]) => value)
+        .reduce((acc, val) => acc.concat(val), [])
     : content
 );
+
+export const calculateDhcpPlaceholdersIpv4 = (ip) => {
+    const LAST_OCTET_IDX = 3;
+    const LAST_OCTET_RANGE_START = 100;
+    const LAST_OCTET_RANGE_END = 200;
+
+    const addr = ipaddr.parse(ip);
+    addr.octets[LAST_OCTET_IDX] = LAST_OCTET_RANGE_START;
+    const range_start = addr.toString();
+
+    addr.octets[LAST_OCTET_IDX] = LAST_OCTET_RANGE_END;
+    const range_end = addr.toString();
+
+    const {
+        subnet_mask,
+        lease_duration,
+    } = DHCP_VALUES_PLACEHOLDERS.ipv4;
+
+    return {
+        gateway_ip: ip,
+        subnet_mask,
+        range_start,
+        range_end,
+        lease_duration,
+    };
+};
+
+export const calculateDhcpPlaceholdersIpv6 = () => {
+    const {
+        range_start,
+        range_end,
+        lease_duration,
+    } = DHCP_VALUES_PLACEHOLDERS.ipv6;
+
+    return {
+        range_start,
+        range_end,
+        lease_duration,
+    };
+};

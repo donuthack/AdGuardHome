@@ -16,13 +16,12 @@ import {
     validateIpv4RangeEnd,
 } from '../../../helpers/validators';
 
-const FormDHCPv4 = (props) => {
-    const {
-        handleSubmit,
-        submitting,
-        processingConfig,
-    } = props;
-
+const FormDHCPv4 = ({
+    handleSubmit,
+    submitting,
+    processingConfig,
+    ipv4placeholders,
+}) => {
     const { t } = useTranslation();
     const dhcpv4 = useSelector((state) => state.form[FORM_NAME.DHCPv4]);
     const v4 = dhcpv4?.values?.v4 ?? {};
@@ -44,92 +43,90 @@ const FormDHCPv4 = (props) => {
     }, [Object.values(v4)
         .some(Boolean)]);
 
-    return (
-        <form onSubmit={handleSubmit}>
-            <div className="row">
-                <div className="col-lg-6">
-                    <div className="form__group form__group--settings">
-                        <label>{t('dhcp_form_gateway_input')}</label>
-                        <Field
-                            name="v4.gateway_ip"
-                            component={renderInputField}
-                            type="text"
-                            className="form-control"
-                            placeholder={t('dhcp_form_gateway_input')}
-                            validate={[validateIpv4, validateRequired]}
-                            disabled={!selectedInterface}
-                        />
-                    </div>
-                    <div className="form__group form__group--settings">
-                        <label>{t('dhcp_form_subnet_input')}</label>
-                        <Field
-                            name="v4.subnet_mask"
-                            component={renderInputField}
-                            type="text"
-                            className="form-control"
-                            placeholder={t('dhcp_form_subnet_input')}
-                            validate={[validateIpv4, validateRequired]}
-                            disabled={!selectedInterface}
-                        />
-                    </div>
+    return <form onSubmit={handleSubmit}>
+        <div className="row">
+            <div className="col-lg-6">
+                <div className="form__group form__group--settings">
+                    <label>{t('dhcp_form_gateway_input')}</label>
+                    <Field
+                        name="v4.gateway_ip"
+                        component={renderInputField}
+                        type="text"
+                        className="form-control"
+                        placeholder={t(ipv4placeholders.gateway_ip)}
+                        validate={[validateIpv4, validateRequired]}
+                        disabled={!selectedInterface}
+                    />
                 </div>
-                <div className="col-lg-6">
-                    <div className="form__group form__group--settings">
-                        <div className="row">
-                            <div className="col-12">
-                                <label>{t('dhcp_form_range_title')}</label>
-                            </div>
-                            <div className="col">
-                                <Field
-                                    name="v4.range_start"
-                                    component={renderInputField}
-                                    type="text"
-                                    className="form-control"
-                                    placeholder={t('dhcp_form_range_start')}
-                                    validate={[validateIpv4]}
-                                    disabled={!selectedInterface}
-                                />
-                            </div>
-                            <div className="col">
-                                <Field
-                                    name="v4.range_end"
-                                    component={renderInputField}
-                                    type="text"
-                                    className="form-control"
-                                    placeholder={t('dhcp_form_range_end')}
-                                    validate={[validateIpv4, validateIpv4RangeEnd]}
-                                    disabled={!selectedInterface}
-                                />
-                            </div>
+                <div className="form__group form__group--settings">
+                    <label>{t('dhcp_form_subnet_input')}</label>
+                    <Field
+                        name="v4.subnet_mask"
+                        component={renderInputField}
+                        type="text"
+                        className="form-control"
+                        placeholder={t(ipv4placeholders.subnet_mask)}
+                        validate={[validateIpv4, validateRequired]}
+                        disabled={!selectedInterface}
+                    />
+                </div>
+            </div>
+            <div className="col-lg-6">
+                <div className="form__group form__group--settings">
+                    <div className="row">
+                        <div className="col-12">
+                            <label>{t('dhcp_form_range_title')}</label>
+                        </div>
+                        <div className="col">
+                            <Field
+                                name="v4.range_start"
+                                component={renderInputField}
+                                type="text"
+                                className="form-control"
+                                placeholder={t(ipv4placeholders.range_start)}
+                                validate={[validateIpv4]}
+                                disabled={!selectedInterface}
+                            />
+                        </div>
+                        <div className="col">
+                            <Field
+                                name="v4.range_end"
+                                component={renderInputField}
+                                type="text"
+                                className="form-control"
+                                placeholder={t(ipv4placeholders.range_end)}
+                                validate={[validateIpv4, validateIpv4RangeEnd]}
+                                disabled={!selectedInterface}
+                            />
                         </div>
                     </div>
-                    <div className="form__group form__group--settings">
-                        <label>{t('dhcp_form_lease_title')}</label>
-                        <Field
-                            name="v4.lease_duration"
-                            component={renderInputField}
-                            type="number"
-                            className="form-control"
-                            placeholder={t('dhcp_form_lease_input')}
-                            validate={[validateIsPositiveValue, validateRequired]}
-                            normalize={toNumber}
-                            min={0}
-                            disabled={!selectedInterface}
-                        />
-                    </div>
+                </div>
+                <div className="form__group form__group--settings">
+                    <label>{t('dhcp_form_lease_title')}</label>
+                    <Field
+                        name="v4.lease_duration"
+                        component={renderInputField}
+                        type="number"
+                        className="form-control"
+                        placeholder={t(ipv4placeholders.lease_duration)}
+                        validate={[validateIsPositiveValue, validateRequired]}
+                        normalize={toNumber}
+                        min={0}
+                        disabled={!selectedInterface}
+                    />
                 </div>
             </div>
-            <div className="btn-list">
-                <button
-                    type="submit"
-                    className="btn btn-success btn-standard"
-                    disabled={submitting || invalid || processingConfig || !selectedInterface}
-                >
-                    {t('save_config')}
-                </button>
-            </div>
-        </form>
-    );
+        </div>
+        <div className="btn-list">
+            <button
+                type="submit"
+                className="btn btn-success btn-standard"
+                disabled={submitting || invalid || processingConfig || !selectedInterface}
+            >
+                {t('save_config')}
+            </button>
+        </div>
+    </form>;
 };
 
 FormDHCPv4.propTypes = {
@@ -139,6 +136,7 @@ FormDHCPv4.propTypes = {
     processingConfig: PropTypes.bool.isRequired,
     change: PropTypes.func.isRequired,
     reset: PropTypes.func.isRequired,
+    ipv4placeholders: PropTypes.object.isRequired,
 };
 
 export default reduxForm({

@@ -488,6 +488,33 @@ export const FORM_NAME = {
 export const SMALL_SCREEN_SIZE = 767;
 export const MEDIUM_SCREEN_SIZE = 1023;
 
-export const maxIPv6 = 'ff';
-
 export const SECONDS_IN_HOUR = 60 * 60;
+
+export const SECONDS_IN_DAY = SECONDS_IN_HOUR * 24;
+
+export const DHCP_VALUES_PLACEHOLDERS = {
+    ipv4: {
+        subnet_mask: '255.255.255.0',
+        lease_duration: SECONDS_IN_DAY.toString(),
+    },
+    ipv6: {
+        range_start: '2001::1',
+        range_end: 'ff',
+        lease_duration: SECONDS_IN_DAY.toString(),
+    },
+};
+
+export const DHCP_DESCRIPTION_PLACEHOLDERS = {
+    ipv4: {
+        gateway_ip: 'dhcp_form_gateway_input',
+        subnet_mask: 'dhcp_form_subnet_input',
+        range_start: 'dhcp_form_range_start',
+        range_end: 'dhcp_form_range_end',
+        lease_duration: 'dhcp_form_lease_input',
+    },
+    ipv6: {
+        range_start: 'dhcp_form_range_start',
+        range_end: 'dhcp_form_range_end',
+        lease_duration: 'dhcp_form_lease_input',
+    },
+};
