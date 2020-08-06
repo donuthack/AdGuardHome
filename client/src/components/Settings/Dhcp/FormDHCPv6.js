@@ -27,20 +27,20 @@ const FormDHCPv6 = ({
     const v6 = dhcpv6?.values?.v6 ?? {};
     const dhcpv6Errors = dhcpv6?.syncErrors;
 
+    const isEmptyConfig = !Object.values(v6).some(Boolean);
+
     const dhcpInterfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES]);
     const interface_name = dhcpInterfaces?.values?.interface_name;
 
     const dhcpInterfacesErrors = dhcpInterfaces?.syncErrors;
-    const invalid = !interface_name || dhcpv6Errors || dhcpInterfacesErrors;
+    const invalid = !interface_name || dhcpv6Errors || dhcpInterfacesErrors || isEmptyConfig;
 
     const validateRequired = useCallback((value) => {
-        if (!Object.values(v6)
-            .some(Boolean)) {
+        if (isEmptyConfig) {
             return undefined;
         }
         return validateRequiredValue(value);
-    }, [Object.values(v6)
-        .some(Boolean)]);
+    }, [isEmptyConfig]);
 
 
     return <form onSubmit={handleSubmit}>

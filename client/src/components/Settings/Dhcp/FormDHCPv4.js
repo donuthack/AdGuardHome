@@ -25,23 +25,23 @@ const FormDHCPv4 = ({
     const { t } = useTranslation();
     const dhcpv4 = useSelector((state) => state.form[FORM_NAME.DHCPv4]);
     const v4 = dhcpv4?.values?.v4 ?? {};
+
     const dhcpv4Errors = dhcpv4?.syncErrors;
+    const isEmptyConfig = !Object.values(v4).some(Boolean);
 
     const dhcpInterfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES]);
     const interface_name = dhcpInterfaces?.values?.interface_name;
     const selectedInterface = !!interface_name;
     const dhcpInterfacesErrors = dhcpInterfaces?.syncErrors;
 
-    const invalid = !interface_name || dhcpv4Errors || dhcpInterfacesErrors;
+    const invalid = !interface_name || dhcpv4Errors || dhcpInterfacesErrors || isEmptyConfig;
 
     const validateRequired = useCallback((value) => {
-        if (!Object.values(v4)
-            .some(Boolean)) {
+        if (isEmptyConfig) {
             return undefined;
         }
         return validateRequiredValue(value);
-    }, [Object.values(v4)
-        .some(Boolean)]);
+    }, [isEmptyConfig]);
 
     return <form onSubmit={handleSubmit}>
         <div className="row">
