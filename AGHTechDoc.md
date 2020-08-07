@@ -24,6 +24,7 @@ Contents:
 	* Delete client
 	* API: Find clients by IP
 * Enable DHCP server
+	* "Show DHCP interfaces" command
 	* "Show DHCP status" command
 	* "Check DHCP" command
 	* "Enable DHCP" command
@@ -409,6 +410,28 @@ Algorithm:
 * User clicks on "Enable DHCP"; UI sends request to server
 * Server sets a static IP (if necessary), enables DHCP server, sends the status back to UI
 * UI shows the status
+
+
+### "Show DHCP interfaces" command
+
+Request:
+
+	GET /control/dhcp/interfaces
+
+Response:
+
+	200 OK
+
+	{
+		"iface_name":{
+			"name":"iface_name",
+			"mtu":1500,
+			"hardware_address":"...",
+			"ip_addresses":["ipv4 addr","ipv6 addr", ...],
+			"flags":"up|broadcast|multicast"
+		}
+		...
+	}
 
 
 ### "Show DHCP status" command
