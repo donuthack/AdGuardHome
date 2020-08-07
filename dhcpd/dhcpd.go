@@ -44,7 +44,7 @@ type ServerConfig struct {
 	HTTPRegister func(string, string, func(http.ResponseWriter, *http.Request)) `yaml:"-"`
 }
 
-type onLeaseChangedT func(flags int)
+type OnLeaseChangedT func(flags int)
 
 // flags for onLeaseChanged()
 const (
@@ -64,7 +64,12 @@ type Server struct {
 	conf ServerConfig
 
 	// Called when the leases DB is modified
-	onLeaseChanged []onLeaseChangedT
+	onLeaseChanged []OnLeaseChangedT
+}
+
+type ServerInterface interface {
+	Leases(flags int) []Lease
+	SetOnLeaseChanged(onLeaseChanged OnLeaseChangedT)
 }
 
 // CheckConfig checks the configuration
@@ -136,7 +141,7 @@ func (s *Server) onNotify(flags uint32) {
 }
 
 // SetOnLeaseChanged - set callback
-func (s *Server) SetOnLeaseChanged(onLeaseChanged onLeaseChangedT) {
+func (s *Server) SetOnLeaseChanged(onLeaseChanged OnLeaseChangedT) {
 	s.onLeaseChanged = append(s.onLeaseChanged, onLeaseChanged)
 }
 
