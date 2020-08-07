@@ -377,14 +377,23 @@ export const findActiveDhcp = (name) => async (dispatch, getState) => {
         dispatch(findActiveDhcpSuccess(activeDhcp));
         const { check, interface_name } = getState().dhcp;
         const { staticIP } = check ?? {};
+        const { otherServer } = check ?? {};
+
+        if (otherServer.found === STATUS_RESPONSE.ERROR) {
+            dispatch(addErrorToast({ error: 'dhcp_error' }));
+            if (otherServer.error) {
+                dispatch(addErrorToast({ error: otherServer.error }));
+            }
+        }
 
         if (staticIP.static === STATUS_RESPONSE.ERROR) {
             dispatch(addErrorToast({ error: 'dhcp_static_ip_error' }));
-            if (staticIP.error) {
-                dispatch(addErrorToast({ error: staticIP.error }));
-            }
+        }
+
+        if (otherServer.found === STATUS_RESPONSE.YES) {
+            dispatch(addErrorToast({ error: 'dhcp_found' }));
         } else if (staticIP.static === STATUS_RESPONSE.NO && staticIP.ip && interface_name) {
-            const message = i18next.t('dhcp_dynamic_ip_found', {
+            const warning = i18next.t('dhcp_dynamic_ip_found', {
                 interfaceName: interface_name,
                 ipAddress: staticIP.ip,
                 interpolation: {
@@ -392,7 +401,9 @@ export const findActiveDhcp = (name) => async (dispatch, getState) => {
                     suffix: '}}</0>',
                 },
             });
-            dispatch(addSuccessToast(message));
+            dispatch(addErrorToast({ error: warning }));
+        } else {
+            dispatch(addSuccessToast('dhcp_not_found'));
         }
     } catch (error) {
         dispatch(addErrorToast({ error }));

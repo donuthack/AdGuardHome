@@ -13,7 +13,6 @@ import {
 import Leases from './Leases';
 import StaticLeases from './StaticLeases/index';
 import Card from '../../ui/Card';
-import Accordion from '../../ui/Accordion';
 import PageTitle from '../../ui/PageTitle';
 import Loading from '../../ui/Loading';
 import {
@@ -140,35 +139,6 @@ const Dhcp = () => {
         </button>;
     };
 
-    const getActiveDhcpMessage = (check) => {
-        const { found } = check.otherServer;
-
-        const STATUS = {
-            isError: found === STATUS_RESPONSE.ERROR,
-            isFound: found === STATUS_RESPONSE.YES,
-            isNotFound: found === STATUS_RESPONSE.NO,
-        };
-
-        const className = classNames('mb-2', {
-            'text-danger': STATUS.isError || STATUS.isFound,
-        });
-
-        const MESSAGES_MAP = {
-            [STATUS_RESPONSE.ERROR]: 'dhcp_error',
-            [STATUS_RESPONSE.YES]: 'dhcp_found',
-            [STATUS_RESPONSE.NO]: 'dhcp_not_found',
-        };
-
-        return <div className={className}>
-            <Trans>{MESSAGES_MAP[found]}</Trans>
-            {STATUS.isError && <div className="mt-2 mb-2">
-                <Accordion label={t('error_details')}>
-                    <span>{check.otherServer.error}</span>
-                </Accordion>
-            </div>}
-        </div>;
-    };
-
     const getDhcpWarning = (check) => (check.otherServer.found === STATUS_RESPONSE.NO
         ? null
         : <div className="text-danger">
@@ -232,7 +202,6 @@ const Dhcp = () => {
         && <>
             {!enabled && check && <div className="mb-5">
                 <hr />
-                {getActiveDhcpMessage(check)}
                 {getDhcpWarning(check)}
             </div>}
             <Interfaces

@@ -45,7 +45,7 @@ const FormDHCPv6 = ({
 
     return <form onSubmit={handleSubmit}>
         <div className="row">
-            <div className="col-lg-12">
+            <div className="col-lg-6">
                 <div className="form__group form__group--settings">
                     <div className="row">
                         <div className="col-12">
