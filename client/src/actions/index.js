@@ -393,8 +393,6 @@ export const findActiveDhcp = (name) => async (dispatch, getState) => {
                 },
             });
             dispatch(addSuccessToast(message));
-        } else if (staticIP.static === STATUS_RESPONSE.YES) {
-            dispatch(addSuccessToast('dhcp_found'));
         }
     } catch (error) {
         dispatch(addErrorToast({ error }));

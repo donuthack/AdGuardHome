@@ -140,28 +140,32 @@ const Dhcp = () => {
         </button>;
     };
 
-    const getActiveDhcpMessage = (t, check) => {
+    const getActiveDhcpMessage = (check) => {
         const { found } = check.otherServer;
 
-        if (found === STATUS_RESPONSE.ERROR) {
-            return <div className="text-danger mb-2">
-                <Trans>dhcp_error</Trans>
-                <div className="mt-2 mb-2">
-                    <Accordion label={t('error_details')}>
-                        <span>{check.otherServer.error}</span>
-                    </Accordion>
-                </div>
-            </div>;
-        }
+        const STATUS = {
+            isError: found === STATUS_RESPONSE.ERROR,
+            isFound: found === STATUS_RESPONSE.YES,
+            isNotFound: found === STATUS_RESPONSE.NO,
+        };
 
-        return <div className="mb-2">
-            {found === STATUS_RESPONSE.YES
-                ? <div className="text-danger">
-                    <Trans>dhcp_found</Trans>
-                </div>
-                : <div className="text-secondary">
-                    <Trans>dhcp_not_found</Trans>
-                </div>}
+        const className = classNames('mb-2', {
+            'text-danger': STATUS.isError || STATUS.isFound,
+        });
+
+        const MESSAGES_MAP = {
+            [STATUS_RESPONSE.ERROR]: 'dhcp_error',
+            [STATUS_RESPONSE.YES]: 'dhcp_found',
+            [STATUS_RESPONSE.NO]: 'dhcp_not_found',
+        };
+
+        return <div className={className}>
+            <Trans>{MESSAGES_MAP[found]}</Trans>
+            {STATUS.isError && <div className="mt-2 mb-2">
+                <Accordion label={t('error_details')}>
+                    <span>{check.otherServer.error}</span>
+                </Accordion>
+            </div>}
         </div>;
     };
 
@@ -227,7 +231,8 @@ const Dhcp = () => {
         {!processing && !processingInterfaces
         && <>
             {!enabled && check && <div className="mb-5">
-                {getActiveDhcpMessage(t, check)}
+                <hr />
+                {getActiveDhcpMessage(check)}
                 {getDhcpWarning(check)}
             </div>}
             <Interfaces
