@@ -191,7 +191,7 @@ export const captitalizeWords = (text) => text.split(/[ -_]/g)
 
 export const getInterfaceIp = (option) => {
     const onlyIPv6 = option.ip_addresses.every((ip) => ip.includes(':'));
-    let interfaceIP = option.ip_addresses[0];
+    let [interfaceIP] = option.ip_addresses;
 
     if (!onlyIPv6) {
         option.ip_addresses.forEach((ip) => {
@@ -204,16 +204,9 @@ export const getInterfaceIp = (option) => {
     return interfaceIP;
 };
 
-export const getIpList = (interfaces) => {
-    let list = [];
-
-    Object.keys(interfaces)
-        .forEach((item) => {
-            list = [...list, ...interfaces[item].ip_addresses];
-        });
-
-    return list.sort();
-};
+export const getIpList = (interfaces) => Object.values(interfaces)
+    .reduce((acc, curr) => acc.concat(curr.ip_addresses), [])
+    .sort();
 
 export const getDnsAddress = (ip, port = '') => {
     const isStandardDnsPort = port === STANDARD_DNS_PORT;
@@ -669,12 +662,18 @@ export const getLogsUrlParams = (search, response_status) => `?${queryString.str
     response_status,
 })}`;
 
-export const processContent = (content) => (Array.isArray(content)
+export const processContent = (
+    content,
+) => (Array.isArray(content)
     ? content.filter(([, value]) => value)
         .reduce((acc, val) => acc.concat(val), [])
-    : content
-);
+    : content);
 
+/**
+ * @param ip {string}
+ * @returns {{range_end: string, subnet_mask: string, range_start: string,
+ * lease_duration: string, gateway_ip: string}}
+ */
 export const calculateDhcpPlaceholdersIpv4 = (ip) => {
     const LAST_OCTET_IDX = 3;
     const LAST_OCTET_RANGE_START = 100;
@@ -714,3 +713,19 @@ export const calculateDhcpPlaceholdersIpv6 = () => {
         lease_duration,
     };
 };
+
+/**
+ * Add ip_addresses property - concatenated ipv4_addresses and ipv6_addresses for every interface
+ * @param interfaces
+ * @param interfaces.ipv4_addresses {string[]}
+ * @param interfaces.ipv6_addresses {string[]}
+ * @returns interfaces Interfaces enriched with ip_addresses property
+ */
+export const enrichWithConcatenatedIpAddresses = (interfaces) => Object.entries(interfaces)
+    .reduce((acc, [k, v]) => {
+        const ipv4_addresses = v.ipv4_addresses ?? [];
+        const ipv6_addresses = v.ipv6_addresses ?? [];
+
+        acc[k].ip_addresses = ipv4_addresses.concat(ipv6_addresses);
+        return acc;
+    }, interfaces);

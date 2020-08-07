@@ -48,7 +48,6 @@ export const PRIVACY_POLICY_LINK = 'https://adguard.com/privacy/home.html';
 export const PORT_53_FAQ_LINK = 'https://github.com/AdguardTeam/AdGuardHome/wiki/FAQ#bindinuse';
 
 export const ADDRESS_IN_USE_TEXT = 'address already in use';
-export const UBUNTU_SYSTEM_PORT = 53;
 
 export const INSTALL_FIRST_STEP = 1;
 export const INSTALL_TOTAL_STEPS = 5;
@@ -144,7 +143,7 @@ export const UNSAFE_PORTS = [
 
 export const ALL_INTERFACES_IP = '0.0.0.0';
 
-export const DHCP_STATUS_RESPONSE = {
+export const STATUS_RESPONSE = {
     YES: 'yes',
     NO: 'no',
     ERROR: 'error',

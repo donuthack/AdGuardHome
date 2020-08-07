@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Field, reduxForm } from 'redux-form';
 import { useTranslation } from 'react-i18next';
@@ -20,20 +20,21 @@ const FormDHCPv6 = ({
     submitting,
     processingConfig,
     ipv6placeholders,
-    isInterfaceIncludesIpv6,
 }) => {
     const { t } = useTranslation();
-    const dhcpv6 = useSelector((state) => state.form[FORM_NAME.DHCPv6]);
-    const v6 = dhcpv6?.values?.v6 ?? {};
-    const dhcpv6Errors = dhcpv6?.syncErrors;
+    const dhcp = useSelector((state) => state.form[FORM_NAME.DHCPv6], shallowEqual);
+    const interfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES], shallowEqual);
+    const { interface_name } = interfaces?.values ?? {};
 
-    const isEmptyConfig = !Object.values(v6).some(Boolean);
+    const isInterfaceIncludesIpv6 = useSelector(
+        (state) => !!state.dhcp?.interfaces?.[interface_name]?.ipv6_addresses,
+    );
 
-    const dhcpInterfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES]);
-    const interface_name = dhcpInterfaces?.values?.interface_name;
+    const isEmptyConfig = !Object.values(dhcp?.values?.v6 ?? {})
+        .some(Boolean);
 
-    const dhcpInterfacesErrors = dhcpInterfaces?.syncErrors;
-    const invalid = !interface_name || dhcpv6Errors || dhcpInterfacesErrors || isEmptyConfig;
+    const invalid = dhcp?.syncErrors || interfaces?.syncErrors || !isInterfaceIncludesIpv6
+        || isEmptyConfig || submitting || processingConfig;
 
     const validateRequired = useCallback((value) => {
         if (isEmptyConfig) {
@@ -41,7 +42,6 @@ const FormDHCPv6 = ({
         }
         return validateRequiredValue(value);
     }, [isEmptyConfig]);
-
 
     return <form onSubmit={handleSubmit}>
         <div className="row">
@@ -97,7 +97,7 @@ const FormDHCPv6 = ({
             <button
                 type="submit"
                 className="btn btn-success btn-standard"
-                disabled={submitting || invalid || processingConfig || !isInterfaceIncludesIpv6}
+                disabled={invalid}
             >
                 {t('save_config')}
             </button>
@@ -113,7 +113,6 @@ FormDHCPv6.propTypes = {
     change: PropTypes.func.isRequired,
     reset: PropTypes.func.isRequired,
     ipv6placeholders: PropTypes.object.isRequired,
-    isInterfaceIncludesIpv6: PropTypes.bool.isRequired,
 };
 
 export default reduxForm({

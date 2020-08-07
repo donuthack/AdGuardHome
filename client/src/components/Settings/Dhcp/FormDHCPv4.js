@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Field, reduxForm } from 'redux-form';
 import { useTranslation } from 'react-i18next';
@@ -23,18 +23,19 @@ const FormDHCPv4 = ({
     ipv4placeholders,
 }) => {
     const { t } = useTranslation();
-    const dhcpv4 = useSelector((state) => state.form[FORM_NAME.DHCPv4]);
-    const v4 = dhcpv4?.values?.v4 ?? {};
+    const dhcp = useSelector((state) => state.form[FORM_NAME.DHCPv4], shallowEqual);
+    const interfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES], shallowEqual);
+    const { interface_name } = interfaces?.values ?? {};
 
-    const dhcpv4Errors = dhcpv4?.syncErrors;
-    const isEmptyConfig = !Object.values(v4).some(Boolean);
+    const isInterfaceIncludesIpv4 = useSelector(
+        (state) => !!state.dhcp?.interfaces?.[interface_name]?.ipv4_addresses,
+    );
 
-    const dhcpInterfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES]);
-    const interface_name = dhcpInterfaces?.values?.interface_name;
-    const selectedInterface = !!interface_name;
-    const dhcpInterfacesErrors = dhcpInterfaces?.syncErrors;
+    const isEmptyConfig = !Object.values(dhcp?.values?.v4 ?? {})
+        .some(Boolean);
 
-    const invalid = !interface_name || dhcpv4Errors || dhcpInterfacesErrors || isEmptyConfig;
+    const invalid = dhcp?.syncErrors || interfaces?.syncErrors || !isInterfaceIncludesIpv4
+        || isEmptyConfig || submitting || processingConfig;
 
     const validateRequired = useCallback((value) => {
         if (isEmptyConfig) {
@@ -55,7 +56,7 @@ const FormDHCPv4 = ({
                         className="form-control"
                         placeholder={t(ipv4placeholders.gateway_ip)}
                         validate={[validateIpv4, validateRequired]}
-                        disabled={!selectedInterface}
+                        disabled={!isInterfaceIncludesIpv4}
                     />
                 </div>
                 <div className="form__group form__group--settings">
@@ -67,7 +68,7 @@ const FormDHCPv4 = ({
                         className="form-control"
                         placeholder={t(ipv4placeholders.subnet_mask)}
                         validate={[validateIpv4, validateRequired]}
-                        disabled={!selectedInterface}
+                        disabled={!isInterfaceIncludesIpv4}
                     />
                 </div>
             </div>
@@ -85,7 +86,7 @@ const FormDHCPv4 = ({
                                 className="form-control"
                                 placeholder={t(ipv4placeholders.range_start)}
                                 validate={[validateIpv4]}
-                                disabled={!selectedInterface}
+                                disabled={!isInterfaceIncludesIpv4}
                             />
                         </div>
                         <div className="col">
@@ -96,7 +97,7 @@ const FormDHCPv4 = ({
                                 className="form-control"
                                 placeholder={t(ipv4placeholders.range_end)}
                                 validate={[validateIpv4, validateIpv4RangeEnd]}
-                                disabled={!selectedInterface}
+                                disabled={!isInterfaceIncludesIpv4}
                             />
                         </div>
                     </div>
@@ -112,7 +113,7 @@ const FormDHCPv4 = ({
                         validate={[validateIsPositiveValue, validateRequired]}
                         normalize={toNumber}
                         min={0}
-                        disabled={!selectedInterface}
+                        disabled={!isInterfaceIncludesIpv4}
                     />
                 </div>
             </div>
@@ -121,7 +122,7 @@ const FormDHCPv4 = ({
             <button
                 type="submit"
                 className="btn btn-success btn-standard"
-                disabled={submitting || invalid || processingConfig || !selectedInterface}
+                disabled={invalid}
             >
                 {t('save_config')}
             </button>

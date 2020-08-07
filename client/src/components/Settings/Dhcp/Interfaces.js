@@ -15,11 +15,13 @@ const renderInterfaces = (interfaces) => Object.keys(interfaces)
     .map((item) => {
         const option = interfaces[item];
         const { name } = option;
-        const [interfaceIP] = option.ip_addresses;
-        // todo: display first ipv4 and ipv6 after api is updated
-        return <option value={name} key={name}>
-            {name} - {interfaceIP}
-        </option>;
+
+        const [interfaceIPv4] = option?.ipv4_addresses ?? [];
+        const [interfaceIPv6] = option?.ipv6_addresses ?? [];
+
+        const optionContent = [name, interfaceIPv4, interfaceIPv6].filter(Boolean).join(' - ');
+
+        return <option value={name} key={name}>{optionContent}</option>;
     });
 
 const renderInterfaceValues = (interfaceValues) => <ul className="list-unstyled mt-1 mb-3">

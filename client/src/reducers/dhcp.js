@@ -1,5 +1,6 @@
 import { handleActions } from 'redux-actions';
 import * as actions from '../actions';
+import { enrichWithConcatenatedIpAddresses } from '../helpers/helpers';
 
 // todo: figure out if we cat get rid of redux-form state duplication
 const dhcp = handleActions(
@@ -36,7 +37,7 @@ const dhcp = handleActions(
         [actions.getDhcpInterfacesSuccess]: (state, { payload }) => {
             const newState = {
                 ...state,
-                interfaces: payload,
+                interfaces: enrichWithConcatenatedIpAddresses(payload),
                 processingInterfaces: false,
             };
             return newState;

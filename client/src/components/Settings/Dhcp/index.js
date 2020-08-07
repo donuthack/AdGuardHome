@@ -7,7 +7,7 @@ import { destroy } from 'redux-form';
 import {
     DHCP_DESCRIPTION_PLACEHOLDERS,
     DHCP_FORM_NAMES,
-    DHCP_STATUS_RESPONSE,
+    STATUS_RESPONSE,
     FORM_NAME,
 } from '../../../helpers/constants';
 import Leases from './Leases';
@@ -59,9 +59,6 @@ const Dhcp = () => {
     const dhcpInterfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES]);
     const interface_name = dhcpInterfaces?.values?.interface_name;
 
-    const dhcpInterface = useSelector((state) => state.dhcp?.interfaces?.[interface_name]);
-    const isInterfaceIncludesIpv6 = dhcpInterface?.ip_addresses.some((ip) => ip.includes(':')) ?? false;
-
     useEffect(() => {
         dispatch(getDhcpStatus());
         dispatch(getDhcpInterfaces());
@@ -71,15 +68,14 @@ const Dhcp = () => {
     const [ipv6placeholders, setIpv6Placeholders] = useState(DHCP_DESCRIPTION_PLACEHOLDERS.ipv6);
 
     useEffect(() => {
-        const [ip] = interfaces?.[interface_name]?.ip_addresses ?? [];
+        const [ipv4] = interfaces?.[interface_name]?.ipv4_addresses ?? [];
+        const [ipv6] = interfaces?.[interface_name]?.ipv6_addresses ?? [];
 
-        const isIpv6 = ip?.includes(':');
-
-        const v4placeholders = ip && !isIpv6
-            ? calculateDhcpPlaceholdersIpv4(ip)
+        const v4placeholders = ipv4
+            ? calculateDhcpPlaceholdersIpv4(ipv4)
             : DHCP_DESCRIPTION_PLACEHOLDERS.ipv4;
 
-        const v6placeholders = ip && isIpv6
+        const v6placeholders = ipv6
             ? calculateDhcpPlaceholdersIpv6()
             : DHCP_DESCRIPTION_PLACEHOLDERS.ipv6;
 
@@ -109,68 +105,57 @@ const Dhcp = () => {
         .some(Boolean);
     const enteredSomeValue = enteredSomeV4Value || enteredSomeV6Value || interfaceName;
 
-    const handleToggle = () => {
-        const values = {
-            enabled,
-            interface_name,
-            v4: enteredSomeV4Value ? v4 : {},
-            v6: enteredSomeV6Value ? v6 : {},
-        };
-        dispatch(toggleDhcp(values));
-    };
-
     const getToggleDhcpButton = () => {
         const otherDhcpFound = check?.otherServer
-            && check.otherServer.found === DHCP_STATUS_RESPONSE.YES;
+            && check.otherServer.found === STATUS_RESPONSE.YES;
 
-        const filledConfig = interface_name && (Object.keys(v4)
-            .every(Boolean) || Object.keys(v6)
+        const filledConfig = interface_name && (Object.values(v4)
+            .every(Boolean) || Object.values(v6)
             .every(Boolean));
 
-        if (enabled) {
-            return (
-                <button
-                    type="button"
-                    className="btn btn-sm mr-2 btn-gray"
-                    onClick={() => dispatch(toggleDhcp({ enabled }))}
-                    disabled={processingDhcp || processingConfig}
-                >
-                    <Trans>dhcp_disable</Trans>
-                </button>
-            );
-        }
+        const className = classNames('btn btn-sm mr-2', {
+            'btn-gray': enabled,
+            'btn-outline-success': !enabled,
+        });
 
-        return (
-            <button
-                type="button"
-                className="btn btn-sm mr-2 btn-outline-success"
-                onClick={() => handleToggle()}
-                disabled={!filledConfig || !check || otherDhcpFound
-                || processingDhcp || processingConfig}
-            >
-                <Trans>dhcp_enable</Trans>
-            </button>
-        );
+        const onClickDisable = () => dispatch(toggleDhcp({ enabled }));
+        const onClickEnable = () => {
+            const values = {
+                enabled,
+                interface_name,
+                v4: enteredSomeV4Value ? v4 : {},
+                v6: enteredSomeV6Value ? v6 : {},
+            };
+            dispatch(toggleDhcp(values));
+        };
+
+        return <button
+            type="button"
+            className={className}
+            onClick={enabled ? onClickDisable : onClickEnable}
+            disabled={processingDhcp || processingConfig
+            || (!enabled && (!filledConfig || !check || otherDhcpFound))}
+        >
+            <Trans>{enabled ? 'dhcp_disable' : 'dhcp_enable'}</Trans>
+        </button>;
     };
 
     const getActiveDhcpMessage = (t, check) => {
         const { found } = check.otherServer;
 
-        if (found === DHCP_STATUS_RESPONSE.ERROR) {
-            return (
-                <div className="text-danger mb-2">
-                    <Trans>dhcp_error</Trans>
-                    <div className="mt-2 mb-2">
-                        <Accordion label={t('error_details')}>
-                            <span>{check.otherServer.error}</span>
-                        </Accordion>
-                    </div>
+        if (found === STATUS_RESPONSE.ERROR) {
+            return <div className="text-danger mb-2">
+                <Trans>dhcp_error</Trans>
+                <div className="mt-2 mb-2">
+                    <Accordion label={t('error_details')}>
+                        <span>{check.otherServer.error}</span>
+                    </Accordion>
                 </div>
-            );
+            </div>;
         }
 
         return <div className="mb-2">
-            {found === DHCP_STATUS_RESPONSE.YES
+            {found === STATUS_RESPONSE.YES
                 ? <div className="text-danger">
                     <Trans>dhcp_found</Trans>
                 </div>
@@ -180,15 +165,11 @@ const Dhcp = () => {
         </div>;
     };
 
-    const getDhcpWarning = (check) => {
-        if (check.otherServer.found === DHCP_STATUS_RESPONSE.NO) {
-            return '';
-        }
-
-        return <div className="text-danger">
+    const getDhcpWarning = (check) => (check.otherServer.found === STATUS_RESPONSE.NO
+        ? null
+        : <div className="text-danger">
             <Trans>dhcp_warning</Trans>
-        </div>;
-    };
+        </div>);
 
     const statusButtonClass = classNames('btn btn-sm mx-2', {
         'btn-loading btn-primary': processingStatus,
@@ -199,12 +180,8 @@ const Dhcp = () => {
 
     const toggleModal = () => dispatch(toggleLeaseModal());
 
-    const initialV4 = Object.values(v4)
-        .some(Boolean) ? v4 : {};
-
-    const initialV6 = Object.values(v6)
-        .some(Boolean)
-        ? v6 : {};
+    const initialV4 = enteredSomeV4Value ? v4 : {};
+    const initialV6 = enteredSomeV6Value ? v6 : {};
 
     if (processing || processingInterfaces) {
         return <Loading />;
@@ -222,14 +199,6 @@ const Dhcp = () => {
     }
 
     const toggleDhcpButton = getToggleDhcpButton();
-
-    const warnings = !enabled && check && (
-        <>
-            <hr />
-            {getActiveDhcpMessage(t, check)}
-            {getDhcpWarning(check)}
-        </>
-    );
 
     return <>
         <PageTitle title={t('dhcp_settings')} subtitle={t('dhcp_description')}>
@@ -257,6 +226,10 @@ const Dhcp = () => {
         </PageTitle>
         {!processing && !processingInterfaces
         && <>
+            {!enabled && check && <div className="mb-5">
+                {getActiveDhcpMessage(t, check)}
+                {getDhcpWarning(check)}
+            </div>}
             <Interfaces
                 initialValues={{ interface_name: interfaceName }}
             />
@@ -271,7 +244,6 @@ const Dhcp = () => {
                         processingConfig={processingConfig}
                         ipv4placeholders={ipv4placeholders}
                     />
-                    {warnings}
                 </div>
             </Card>
             <Card
@@ -284,23 +256,20 @@ const Dhcp = () => {
                         initialValues={{ v6: initialV6 }}
                         processingConfig={processingConfig}
                         ipv6placeholders={ipv6placeholders}
-                        isInterfaceIncludesIpv6={isInterfaceIncludesIpv6}
                     />
-                    {warnings}
                 </div>
             </Card>
-            {enabled && (
-                <Card
-                    title={t('dhcp_leases')}
-                    bodyType="card-body box-body--settings"
-                >
-                    <div className="row">
-                        <div className="col">
-                            <Leases leases={leases} />
-                        </div>
+            {enabled
+            && <Card
+                title={t('dhcp_leases')}
+                bodyType="card-body box-body--settings"
+            >
+                <div className="row">
+                    <div className="col">
+                        <Leases leases={leases} />
                     </div>
-                </Card>
-            )}
+                </div>
+            </Card>}
             <Card
                 title={t('dhcp_static_leases')}
                 bodyType="card-body box-body--settings"
