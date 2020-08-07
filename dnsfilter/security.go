@@ -99,6 +99,50 @@ func getCachedResult(cache cache.Cache, host string) (Result, bool) {
 	return r, true
 }
 
+// Find result in cache by host name suffix
+func getCachedResultBySuffix(cache cache.Cache, host string) (Result, bool) {
+	level := 0
+	for i := len(host) - 1; i >= 0; i-- {
+		begin := 0
+		if host[i] == '.' {
+			level++
+			if level == 1 {
+				continue // ".com"
+			}
+			begin = i + 1
+		} else if i == 0 {
+			begin = i
+		} else {
+			continue
+		}
+
+		sfx := host[begin:] // "a.b.c.com" -> "c.com"
+		r, ok := getCachedResult(cache, sfx)
+		if ok {
+			return r, true
+		}
+		if level == 4 {
+			break // ".a.b.c.com"
+		}
+	}
+	return Result{}, false
+}
+
+// Get top level domain
+// "sub.host.com" -> "host.com"
+func topLevelHostName(host string) string {
+	level := 0
+	for i := len(host) - 1; i >= 0; i-- {
+		if host[i] == '.' {
+			level++
+			if level == 2 { // ".a.com"
+				return host[i+1:]
+			}
+		}
+	}
+	return host
+}
+
 // SafeSearchDomain returns replacement address for search engine
 func (d *Dnsfilter) SafeSearchDomain(host string) (string, bool) {
 	val, ok := safeSearchDomains[host]
@@ -160,9 +204,9 @@ func (d *Dnsfilter) checkSafeSearch(host string) (Result, error) {
 // "sub.host.com" -> "hash(sub.host.com).hash(host.com)"
 //  where hash() returns the first 4 characters (2 bytes) from SHA-256 hashsum of the input hostname
 // The maximum is 4 components: "a.b.c.d"
-func hostnameToHashParam(host string) (string, map[string]bool) {
+func hostnameToHashParam(host string) (string, map[string]string) {
 	var hashparam bytes.Buffer
-	hashes := map[string]bool{}
+	hashes := map[string]string{}
 	tld, icann := publicsuffix.PublicSuffix(host)
 	if !icann {
 		// private suffixes like cloudfront.net
@@ -192,7 +236,7 @@ func hostnameToHashParam(host string) (string, map[string]bool) {
 		}
 
 		sum := sha256.Sum256([]byte(curhost))
-		hashes[hex.EncodeToString(sum[:])] = true
+		hashes[hex.EncodeToString(sum[:])] = curhost
 		hashparam.WriteString(fmt.Sprintf("%s.", hex.EncodeToString(sum[0:2])))
 
 		pos := strings.IndexByte(curhost, byte('.'))
@@ -205,7 +249,7 @@ func hostnameToHashParam(host string) (string, map[string]bool) {
 }
 
 // Find the target hash in TXT response
-func (d *Dnsfilter) processTXT(svc, host string, resp *dns.Msg, hashes map[string]bool) bool {
+func (d *Dnsfilter) processTXT(svc, host string, resp *dns.Msg, hashes map[string]string) string {
 	for _, a := range resp.Answer {
 		txt, ok := a.(*dns.TXT)
 		if !ok {
@@ -213,14 +257,14 @@ func (d *Dnsfilter) processTXT(svc, host string, resp *dns.Msg, hashes map[strin
 		}
 		log.Tracef("%s: hashes for %s: %v", svc, host, txt.Txt)
 		for _, t := range txt.Txt {
-			_, ok := hashes[t]
+			hashHost, ok := hashes[t]
 			if ok {
-				log.Tracef("%s: matched %s by %s", svc, host, t)
-				return true
+				log.Tracef("%s: matched %s by %s/%s", svc, host, hashHost, t)
+				return hashHost
 			}
 		}
 	}
-	return false
+	return ""
 }
 
 // Disabling "dupl": the algorithm of SB/PC is similar, but it uses different data
@@ -232,7 +276,7 @@ func (d *Dnsfilter) checkSafeBrowsing(host string) (Result, error) {
 	}
 
 	// check cache
-	cachedValue, isFound := getCachedResult(gctx.safebrowsingCache, host)
+	cachedValue, isFound := getCachedResultBySuffix(gctx.safebrowsingCache, host)
 	if isFound {
 		// atomic.AddUint64(&gctx.stats.Safebrowsing.CacheHits, 1)
 		log.Tracef("SafeBrowsing: found in cache: %s", host)
@@ -252,14 +296,17 @@ func (d *Dnsfilter) checkSafeBrowsing(host string) (Result, error) {
 		return result, err
 	}
 
-	if d.processTXT("SafeBrowsing", host, resp, hashes) {
+	hashHost := d.processTXT("SafeBrowsing", host, resp, hashes)
+	if len(hashHost) != 0 {
 		result.IsFiltered = true
 		result.Reason = FilteredSafeBrowsing
 		result.Rule = "adguard-malware-shavar"
+	} else {
+		hashHost = topLevelHostName(host)
 	}
 
-	valLen := d.setCacheResult(gctx.safebrowsingCache, host, result)
-	log.Debug("SafeBrowsing: stored in cache: %s (%d bytes)", host, valLen)
+	valLen := d.setCacheResult(gctx.safebrowsingCache, hashHost, result)
+	log.Debug("SafeBrowsing: stored in cache: %s (%d bytes)", hashHost, valLen)
 	return result, nil
 }
 
@@ -272,7 +319,7 @@ func (d *Dnsfilter) checkParental(host string) (Result, error) {
 	}
 
 	// check cache
-	cachedValue, isFound := getCachedResult(gctx.parentalCache, host)
+	cachedValue, isFound := getCachedResultBySuffix(gctx.parentalCache, host)
 	if isFound {
 		// atomic.AddUint64(&gctx.stats.Parental.CacheHits, 1)
 		log.Tracef("Parental: found in cache: %s", host)
@@ -292,14 +339,17 @@ func (d *Dnsfilter) checkParental(host string) (Result, error) {
 		return result, err
 	}
 
-	if d.processTXT("Parental", host, resp, hashes) {
+	hashHost := d.processTXT("Parental", host, resp, hashes)
+	if len(hashHost) != 0 {
 		result.IsFiltered = true
 		result.Reason = FilteredParental
 		result.Rule = "parental CATEGORY_BLACKLISTED"
+	} else {
+		hashHost = topLevelHostName(host)
 	}
 
-	valLen := d.setCacheResult(gctx.parentalCache, host, result)
-	log.Debug("Parental: stored in cache: %s (%d bytes)", host, valLen)
+	valLen := d.setCacheResult(gctx.parentalCache, hashHost, result)
+	log.Debug("Parental: stored in cache: %s (%d bytes)", hashHost, valLen)
 	return result, err
 }
 

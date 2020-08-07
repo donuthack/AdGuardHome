@@ -153,6 +153,10 @@ func TestSafeBrowsingHash(t *testing.T) {
 }
 
 func TestSafeBrowsing(t *testing.T) {
+	assert.Equal(t, "c.d", topLevelHostName("c.d"))
+	assert.Equal(t, "d", topLevelHostName("d"))
+	assert.Equal(t, "c.d", topLevelHostName("a.b.c.d"))
+
 	d := NewForTest(&Config{SafeBrowsingEnabled: true}, nil)
 	defer d.Close()
 	gctx.stats.Safebrowsing.Requests = 0

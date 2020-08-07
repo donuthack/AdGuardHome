@@ -64,6 +64,7 @@ Contents:
 	* API: Log in
 	* API: Log out
 	* API: Get current user info
+* Safe services
 
 
 ## Relations between subsystems
@@ -1747,3 +1748,35 @@ Response:
 	}
 
 If no client is configured then authentication is disabled and server sends an empty response.
+
+
+### Safe services
+
+Check if host name is blocked by SB/PC service:
+
+* For each host name component (starting with top-level name), search for the result in cache
+
+* Prepare query string which is generated from first 2 bytes (converted to a 4-character string) of SHA-256 hashes of host name components (max. is 4, i.e. sub2.sub1.host.com), excluding TLD:
+
+		qs = ... + string(sha256(sub.host.com)[0..1]) + "." + string(sha256(host.com)[0..1]) + ".sb.dns.adguard.com."
+
+	For PC `.pc.dns.adguard.com` suffix is used.
+
+* Send TXT query to Family server, receive response which contains the array of complete hash sums of the blocked hosts
+* Check if one of received hash sums matches hash sums for our host name
+
+		hash[0] <> sha256(host.com)
+		hash[0] <> sha256(sub.host.com)
+		hash[1] <> sha256(host.com)
+		hash[1] <> sha256(sub.host.com)
+		...
+
+* Store the result in cache:
+
+	If hash sum is matched for host "bad.host.com", use it as cache key:
+
+		"bad.host.com" -> {blocked:true}
+
+	If not, store the result for the top-level host name:
+
+		"host.com" -> {blocked:false}
