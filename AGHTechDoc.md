@@ -1754,12 +1754,15 @@ If no client is configured then authentication is disabled and server sends an e
 
 Check if host name is blocked by SB/PC service:
 
-* For each host name component, search for the result in cache by the first 2 bytes of SHA-256 hashes of host name components (max. is 4, i.e. sub2.sub1.host.com), excluding TLD
+* For each host name component, search for the result in cache by the first 2 bytes of SHA-256 hashes of host name components (max. is 4, i.e. sub2.sub1.host.com), excluding TLD:
 
 		hashes[] = cache_search(sha256(host.com)[0..1])
 		...
 
-	If found, search for a full hash sum in the cached data.
+	If hash prefix is found, search for a full hash sum in the cached data.
+	If found, the host is blocked.
+	If not found, the host is not blocked - don't request data for this prefix from the Family server again.
+	If hash prefix is not found, request data for this prefix from the Family server.
 
 * Prepare query string which is generated from the first 2 bytes (converted to a 4-character string) of SHA-256 hashes of host name components (max. is 4, i.e. sub2.sub1.host.com), excluding TLD:
 
@@ -1768,6 +1771,7 @@ Check if host name is blocked by SB/PC service:
 	For PC `.pc.dns.adguard.com` suffix is used.
 
 * Send TXT query to Family server, receive response which contains the array of complete hash sums of the blocked hosts
+
 * Check if one of received hash sums (`hashes[]`) matches hash sums for our host name
 
 		hashes[0] <> sha256(host.com)
@@ -1778,5 +1782,6 @@ Check if host name is blocked by SB/PC service:
 
 * Store all received hash sums in cache:
 
-		hashes[0][0..1] -> ...,hashes[0]
+		sha256(host.com)[0..1] -> hashes[0],hashes[1],...
+		sha256(sub.host.com)[0..1] -> hashes[2],...
 		...
