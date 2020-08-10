@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { Trans } from 'react-i18next';
+import classNames from 'classnames';
 import { createOnBlurHandler } from './helpers';
 import { R_UNIX_ABSOLUTE_PATH, R_WIN_ABSOLUTE_PATH } from './constants';
 
@@ -200,23 +201,22 @@ renderCheckboxField.propTypes = {
     }).isRequired,
 };
 
-export const renderSelectField = (props) => {
-    const {
-        input,
-        meta: { touched, error },
-        children,
-        label,
-    } = props;
+export const renderSelectField = ({
+    input,
+    meta: { touched, error },
+    children,
+    label,
+}) => {
+    const showWarning = touched && error;
+    const selectClass = classNames('form-control custom-select', {
+        'select--no-warning': !showWarning,
+    });
 
     return <>
-        <div className="form__group form__group--settings">
-            {label && <label><Trans>{label}</Trans></label>}
-            <select {...input} className="form-control custom-select">
-                {children}
-            </select>
-        </div>
-        {touched && error
-        && <span className="form__message form__message--error"><Trans>{error}</Trans></span>}
+        {label && <label><Trans>{label}</Trans></label>}
+        <select {...input} className={selectClass}>{children}</select>
+        {showWarning
+        && <span className="form__message form__message--error form__message--left-pad"><Trans>{error}</Trans></span>}
     </>;
 };
 

@@ -46,16 +46,18 @@ const renderInterfaceValues = ({
     gateway_ip,
     hardware_address,
     ip_addresses,
-}) => <ul className="list-unstyled mt-1 mb-3">
-    {getInterfaceValues({
-        gateway_ip,
-        hardware_address,
-        ip_addresses,
-    }).map(({ name, value, render }) => value && <li key={name}>
-        <span className="interface__title"><Trans>{name}</Trans>: </span>
-        {render?.(value) || value}
-    </li>)}
-</ul>;
+}) => <div className='d-flex align-items-end col-6'>
+    <ul className="list-unstyled m-0">
+        {getInterfaceValues({
+            gateway_ip,
+            hardware_address,
+            ip_addresses,
+        }).map(({ name, value, render }) => value && <li key={name}>
+            <span className="interface__title"><Trans>{name}</Trans>: </span>
+            {render?.(value) || value}
+        </li>)}
+    </ul>
+</div>;
 
 const Interfaces = () => {
     const { t } = useTranslation();
@@ -70,30 +72,30 @@ const Interfaces = () => {
         (store) => store.form[FORM_NAME.DHCP_INTERFACES]?.values?.interface_name,
     );
 
-    return !processingInterfaces && interfaces
-        && <div className="row">
-            <div className="col-sm-12 col-md-6">
-                <div className="form__group form__group--settings">
-                    <Field
-                        name="interface_name"
-                        component={renderSelectField}
-                        className="form-control custom-select"
-                        validate={[validateRequiredValue]}
-                        label='dhcp_interface_select'
-                    >
-                        <option value='' disabled={enabled}>
-                            {t('dhcp_interface_select')}
-                        </option>
-                        {renderInterfaces(interfaces)}
-                    </Field>
+    const interfaceValue = interface_name && interfaces[interface_name];
+
+    return !processingInterfaces
+            && interfaces
+            && <>
+                <div className="row align-items-center pb-2">
+                    <div className="col-6">
+                        <Field
+                                name="interface_name"
+                                component={renderSelectField}
+                                className="form-control custom-select"
+                                validate={[validateRequiredValue]}
+                                label='dhcp_interface_select'
+                        >
+                            <option value='' disabled={enabled}>
+                                {t('dhcp_interface_select')}
+                            </option>
+                            {renderInterfaces(interfaces)}
+                        </Field>
+                    </div>
+                    {interfaceValue
+                    && renderInterfaceValues(interfaceValue)}
                 </div>
-            </div>
-            {interface_name
-            && <div className="col-sm-12 col-md-6 d-flex align-items-center">
-                {interfaces[interface_name]
-                && renderInterfaceValues(interfaces[interface_name])}
-            </div>}
-        </div>;
+            </>;
 };
 
 renderInterfaceValues.propTypes = {

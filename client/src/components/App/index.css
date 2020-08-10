@@ -62,3 +62,7 @@ body {
 .cursor--not-allowed {
     cursor: not-allowed;
 }
+
+.select--no-warning {
+    margin-bottom: 1.375rem;
+}
