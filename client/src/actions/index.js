@@ -376,8 +376,8 @@ export const findActiveDhcp = (name) => async (dispatch, getState) => {
         const activeDhcp = await apiClient.findActiveDhcp(name);
         dispatch(findActiveDhcpSuccess(activeDhcp));
         const { check, interface_name } = getState().dhcp;
-        const { staticIP } = check ?? {};
-        const { otherServer } = check ?? {};
+        const { staticIP } = check ?? { staticIP: {} };
+        const { otherServer } = check ?? { otherServer: {} };
 
         if (otherServer.found === STATUS_RESPONSE.ERROR) {
             dispatch(addErrorToast({ error: 'dhcp_error' }));
