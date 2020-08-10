@@ -97,10 +97,10 @@ const ROUTES = [
 ];
 
 const renderRoute = ({ path, component, exact }, idx) => <Route
-    key={idx}
-    exact={exact}
-    path={path}
-    component={component}
+        key={idx}
+        exact={exact}
+        path={path}
+        component={component}
 />;
 
 const App = () => {
@@ -143,34 +143,28 @@ const App = () => {
         window.location.reload();
     };
 
-    return (
-        <HashRouter hashType="noslash">
-            <>
-                {updateAvailable && <>
-                    <UpdateTopline />
-                    <UpdateOverlay />
-                </>}
-                {!processingEncryption && <EncryptionTopline />}
-                <LoadingBar className="loading-bar" updateTime={1000} />
-                <Header />
-                <div className="container container--wrap pb-5">
-                    {processing && <Loading />}
-                    {!isCoreRunning && (
-                        <div className="row row-cards">
-                            <div className="col-lg-12">
-                                <Status reloadPage={reloadPage} message="dns_start" />
-                                <Loading />
-                            </div>
-                        </div>
-                    )}
-                    {!processing && isCoreRunning && ROUTES.map(renderRoute)}
+    return <HashRouter hashType="noslash">
+        {updateAvailable && <>
+            <UpdateTopline />
+            <UpdateOverlay />
+        </>}
+        {!processingEncryption && <EncryptionTopline />}
+        <LoadingBar className="loading-bar" updateTime={1000} />
+        <Header />
+        <div className="container container--wrap pb-5">
+            {processing && <Loading />}
+            {!isCoreRunning && <div className="row row-cards">
+                <div className="col-lg-12">
+                    <Status reloadPage={reloadPage} message="dns_start" />
+                    <Loading />
                 </div>
-                <Footer />
-                <Toasts />
-                <Icons />
-            </>
-        </HashRouter>
-    );
+            </div>}
+            {!processing && isCoreRunning && ROUTES.map(renderRoute)}
+        </div>
+        <Footer />
+        <Toasts />
+        <Icons />
+    </HashRouter>;
 };
 
 renderRoute.propTypes = {
