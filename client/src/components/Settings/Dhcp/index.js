@@ -105,8 +105,7 @@ const Dhcp = () => {
     const enteredSomeValue = enteredSomeV4Value || enteredSomeV6Value || interfaceName;
 
     const getToggleDhcpButton = () => {
-        const otherDhcpFound = check?.otherServer
-            && check.otherServer.found === STATUS_RESPONSE.YES;
+        const otherDhcpFound = check && check.otherServer.found === STATUS_RESPONSE.YES;
 
         const filledConfig = interface_name && (Object.values(v4)
             .every(Boolean) || Object.values(v6)
@@ -138,12 +137,6 @@ const Dhcp = () => {
             <Trans>{enabled ? 'dhcp_disable' : 'dhcp_enable'}</Trans>
         </button>;
     };
-
-    const getDhcpWarning = (check) => (check.otherServer.found === STATUS_RESPONSE.NO
-        ? null
-        : <div className="text-danger">
-            <Trans>dhcp_warning</Trans>
-        </div>);
 
     const statusButtonClass = classNames('btn btn-sm mx-2', {
         'btn-loading btn-primary': processingStatus,
@@ -200,9 +193,12 @@ const Dhcp = () => {
         </PageTitle>
         {!processing && !processingInterfaces
         && <>
-            {!enabled && check && <div className="mb-5">
+            {!enabled && check && check.otherServer.found !== STATUS_RESPONSE.NO
+            && <div className="mb-5">
                 <hr />
-                {getDhcpWarning(check)}
+                <div className="text-danger">
+                    <Trans>dhcp_warning</Trans>
+                </div>
             </div>}
             <Interfaces
                 initialValues={{ interface_name: interfaceName }}

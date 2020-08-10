@@ -379,7 +379,10 @@ export const findActiveDhcp = (name) => async (dispatch, getState) => {
         const { staticIP } = check ?? { staticIP: {} };
         const { otherServer } = check ?? { otherServer: {} };
 
+        let isError = false;
+
         if (otherServer.found === STATUS_RESPONSE.ERROR) {
+            isError = true;
             dispatch(addErrorToast({ error: 'dhcp_error' }));
             if (otherServer.error) {
                 dispatch(addErrorToast({ error: otherServer.error }));
@@ -387,7 +390,12 @@ export const findActiveDhcp = (name) => async (dispatch, getState) => {
         }
 
         if (staticIP.static === STATUS_RESPONSE.ERROR) {
+            isError = true;
             dispatch(addErrorToast({ error: 'dhcp_static_ip_error' }));
+        }
+
+        if (isError) {
+            return;
         }
 
         if (otherServer.found === STATUS_RESPONSE.YES) {
