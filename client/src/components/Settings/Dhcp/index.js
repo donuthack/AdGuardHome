@@ -55,23 +55,25 @@ const Dhcp = () => {
         interfaces,
     } = useSelector((state) => state.dhcp, shallowEqual);
 
-    const dhcpInterfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES]);
-    const interface_name = dhcpInterfaces?.values?.interface_name;
+    const interface_name = useSelector(
+        (state) => state.form[FORM_NAME.DHCP_INTERFACES]?.values?.interface_name,
+    );
+
+    const [ipv4placeholders, setIpv4Placeholders] = useState(DHCP_DESCRIPTION_PLACEHOLDERS.ipv4);
+    const [ipv6placeholders, setIpv6Placeholders] = useState(DHCP_DESCRIPTION_PLACEHOLDERS.ipv6);
 
     useEffect(() => {
         dispatch(getDhcpStatus());
         dispatch(getDhcpInterfaces());
     }, []);
 
-    const [ipv4placeholders, setIpv4Placeholders] = useState(DHCP_DESCRIPTION_PLACEHOLDERS.ipv4);
-    const [ipv6placeholders, setIpv6Placeholders] = useState(DHCP_DESCRIPTION_PLACEHOLDERS.ipv6);
-
     useEffect(() => {
         const [ipv4] = interfaces?.[interface_name]?.ipv4_addresses ?? [];
         const [ipv6] = interfaces?.[interface_name]?.ipv6_addresses ?? [];
+        const gateway_ip = interfaces?.[interface_name]?.gateway_ip;
 
         const v4placeholders = ipv4
-            ? calculateDhcpPlaceholdersIpv4(ipv4)
+            ? calculateDhcpPlaceholdersIpv4(ipv4, gateway_ip)
             : DHCP_DESCRIPTION_PLACEHOLDERS.ipv4;
 
         const v6placeholders = ipv6

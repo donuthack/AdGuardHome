@@ -25,7 +25,7 @@ const FormDHCPv4 = ({
     const { t } = useTranslation();
     const dhcp = useSelector((state) => state.form[FORM_NAME.DHCPv4], shallowEqual);
     const interfaces = useSelector((state) => state.form[FORM_NAME.DHCP_INTERFACES], shallowEqual);
-    const { interface_name } = interfaces?.values ?? {};
+    const interface_name = interfaces?.values?.interface_name;
 
     const isInterfaceIncludesIpv4 = useSelector(
         (state) => !!state.dhcp?.interfaces?.[interface_name]?.ipv4_addresses,

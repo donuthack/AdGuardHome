@@ -671,10 +671,11 @@ export const processContent = (
 
 /**
  * @param ip {string}
+ * @param gateway_ip {string}
  * @returns {{range_end: string, subnet_mask: string, range_start: string,
  * lease_duration: string, gateway_ip: string}}
  */
-export const calculateDhcpPlaceholdersIpv4 = (ip) => {
+export const calculateDhcpPlaceholdersIpv4 = (ip, gateway_ip) => {
     const LAST_OCTET_IDX = 3;
     const LAST_OCTET_RANGE_START = 100;
     const LAST_OCTET_RANGE_END = 200;
@@ -692,7 +693,7 @@ export const calculateDhcpPlaceholdersIpv4 = (ip) => {
     } = DHCP_VALUES_PLACEHOLDERS.ipv4;
 
     return {
-        gateway_ip: ip,
+        gateway_ip: gateway_ip || ip,
         subnet_mask,
         range_start,
         range_end,

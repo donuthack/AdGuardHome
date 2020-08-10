@@ -2,14 +2,10 @@ import React from 'react';
 import { shallowEqual, useSelector } from 'react-redux';
 import { Field, reduxForm } from 'redux-form';
 import { Trans, useTranslation } from 'react-i18next';
-
-import {
-    renderSelectField,
-} from '../../../helpers/form';
+import propTypes from 'prop-types';
+import { renderSelectField } from '../../../helpers/form';
+import { validateRequiredValue } from '../../../helpers/validators';
 import { FORM_NAME } from '../../../helpers/constants';
-import {
-    validateRequiredValue,
-} from '../../../helpers/validators';
 
 const renderInterfaces = (interfaces) => Object.keys(interfaces)
     .map((item) => {
@@ -24,20 +20,41 @@ const renderInterfaces = (interfaces) => Object.keys(interfaces)
         return <option value={name} key={name}>{optionContent}</option>;
     });
 
-const renderInterfaceValues = (interfaceValues) => <ul className="list-unstyled mt-1 mb-3">
-    <li>
-        <span className="interface__title">MTU: </span>
-        {interfaceValues.mtu}
-    </li>
-    <li>
-        <span className="interface__title"><Trans>dhcp_hardware_address</Trans>: </span>
-        {interfaceValues.hardware_address}
-    </li>
-    <li>
-        <span className="interface__title"><Trans>dhcp_ip_addresses</Trans>: </span>
-        {interfaceValues.ip_addresses
-            .map((ip) => <span key={ip} className="interface__ip">{ip}</span>)}
-    </li>
+
+const getInterfaceValues = ({
+    gateway_ip,
+    hardware_address,
+    ip_addresses,
+}) => [
+    {
+        name: 'dhcp_form_gateway_input',
+        value: gateway_ip,
+    },
+    {
+        name: 'dhcp_hardware_address',
+        value: hardware_address,
+    },
+    {
+        name: 'dhcp_ip_addresses',
+        value: ip_addresses,
+        render: (ip_addresses) => ip_addresses
+            .map((ip) => <span key={ip} className="interface__ip">{ip}</span>),
+    },
+];
+
+const renderInterfaceValues = ({
+    gateway_ip,
+    hardware_address,
+    ip_addresses,
+}) => <ul className="list-unstyled mt-1 mb-3">
+    {getInterfaceValues({
+        gateway_ip,
+        hardware_address,
+        ip_addresses,
+    }).map(({ name, value, render }) => value && <li key={name}>
+        <span className="interface__title"><Trans>{name}</Trans>: </span>
+        {render?.(value) || value}
+    </li>)}
 </ul>;
 
 const Interfaces = () => {
@@ -72,11 +89,17 @@ const Interfaces = () => {
                 </div>
             </div>
             {interface_name
-            && <div className="col-sm-12 col-md-6">
+            && <div className="col-sm-12 col-md-6 d-flex align-items-center">
                 {interfaces[interface_name]
                 && renderInterfaceValues(interfaces[interface_name])}
             </div>}
         </div>;
+};
+
+renderInterfaceValues.propTypes = {
+    gateway_ip: propTypes.string.isRequired,
+    hardware_address: propTypes.string.isRequired,
+    ip_addresses: propTypes.arrayOf(propTypes.string).isRequired,
 };
 
 export default reduxForm({
