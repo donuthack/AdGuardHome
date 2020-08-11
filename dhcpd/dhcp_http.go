@@ -337,7 +337,7 @@ func (s *Server) handleDHCPAddStaticLease(w http.ResponseWriter, r *http.Request
 	}
 
 	ip := net.ParseIP(lj.IP)
-	if ip != nil && ip.To16() != nil {
+	if ip != nil && ip.To4() == nil {
 		mac, err := net.ParseMAC(lj.HWAddr)
 		if err != nil {
 			httpError(r, w, http.StatusBadRequest, "invalid MAC")
@@ -391,7 +391,7 @@ func (s *Server) handleDHCPRemoveStaticLease(w http.ResponseWriter, r *http.Requ
 	}
 
 	ip := net.ParseIP(lj.IP)
-	if ip != nil && ip.To16() != nil {
+	if ip != nil && ip.To4() == nil {
 		mac, err := net.ParseMAC(lj.HWAddr)
 		if err != nil {
 			httpError(r, w, http.StatusBadRequest, "invalid MAC")
