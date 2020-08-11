@@ -68,6 +68,11 @@ func (s *v4Server) GetLeasesRef() []*Lease {
 	return s.leases
 }
 
+// Return TRUE if this lease holds a blacklisted IP
+func (s *v4Server) blacklisted(l *Lease) bool {
+	return l.HWAddr.String() == "00:00:00:00:00:00"
+}
+
 // GetLeases returns the list of current DHCP leases (thread-safe)
 func (s *v4Server) GetLeases(flags int) []Lease {
 	var result []Lease
@@ -75,7 +80,7 @@ func (s *v4Server) GetLeases(flags int) []Lease {
 
 	s.leasesLock.Lock()
 	for _, lease := range s.leases {
-		if ((flags&LeasesDynamic) != 0 && lease.Expiry.Unix() > now) ||
+		if ((flags&LeasesDynamic) != 0 && lease.Expiry.Unix() > now && !s.blacklisted(lease)) ||
 			((flags&LeasesStatic) != 0 && lease.Expiry.Unix() == leaseExpireStatic) {
 			result = append(result, *lease)
 		}
@@ -98,7 +103,7 @@ func (s *v4Server) FindMACbyIP(ip net.IP) net.HardwareAddr {
 	}
 
 	for _, l := range s.leases {
-		if net.IP.Equal(ip, ip4) {
+		if l.IP.Equal(ip4) {
 			unix := l.Expiry.Unix()
 			if unix > now || unix == leaseExpireStatic {
 				return l.HWAddr
@@ -318,6 +323,16 @@ func (s *v4Server) reserveLease(mac net.HardwareAddr) *Lease {
 	return &l
 }
 
+func (s *v4Server) commitLease(l *Lease) {
+	l.Expiry = time.Now().Add(s.conf.leaseTime)
+
+	s.leasesLock.Lock()
+	s.conf.notify(LeaseChangedDBStore)
+	s.leasesLock.Unlock()
+
+	s.conf.notify(LeaseChangedAdded)
+}
+
 // Process Discover request and return lease
 func (s *v4Server) processDiscover(req *dhcpv4.DHCPv4, resp *dhcpv4.DHCPv4) *Lease {
 	mac := req.ClientHWAddr
@@ -374,6 +389,9 @@ func (s *v4Server) processRequest(req *dhcpv4.DHCPv4, resp *dhcpv4.DHCPv4) (*Lea
 	mac := req.ClientHWAddr
 	hostname := req.Options.Get(dhcpv4.OptionHostName)
 	reqIP := req.Options.Get(dhcpv4.OptionRequestedIPAddress)
+	if reqIP == nil {
+		reqIP = req.ClientIPAddr
+	}
 
 	sid := req.Options.Get(dhcpv4.OptionServerIdentifier)
 	if len(sid) != 0 &&
@@ -414,14 +432,7 @@ func (s *v4Server) processRequest(req *dhcpv4.DHCPv4, resp *dhcpv4.DHCPv4) (*Lea
 	}
 
 	if lease.Expiry.Unix() != leaseExpireStatic {
-
-		lease.Expiry = time.Now().Add(s.conf.leaseTime)
-
-		s.leasesLock.Lock()
-		s.conf.notify(LeaseChangedDBStore)
-		s.leasesLock.Unlock()
-
-		s.conf.notify(LeaseChangedAdded)
+		s.commitLease(lease)
 	}
 
 	resp.UpdateOption(dhcpv4.OptMessageType(dhcpv4.MessageTypeAck))
@@ -467,10 +478,10 @@ func (s *v4Server) process(req *dhcpv4.DHCPv4, resp *dhcpv4.DHCPv4) int {
 	return 1
 }
 
-// client(0.0.0.0:68) -> (Request:ClientMAC,Discover,ClientID,ReqIP,HostName) -> server(255.255.255.255:67)
-// client(255.255.255.255:68) <- (Reply:YourIP,ClientMAC,Offer,ServerID,SubnetMask,LeaseTime) <- server(<IP>:67)
-// client(0.0.0.0:68) -> (Request:ClientMAC,Request,ClientID,ReqIP,HostName,ServerID,ParamReqList) -> server(255.255.255.255:67)
-// client(255.255.255.255:68) <- (Reply:YourIP,ClientMAC,ACK,ServerID,SubnetMask,LeaseTime) <- server(<IP>:67)
+// client(0.0.0.0:68) -> (Request:ClientMAC,Type=Discover,ClientID,ReqIP,HostName) -> server(255.255.255.255:67)
+// client(255.255.255.255:68) <- (Reply:YourIP,ClientMAC,Type=Offer,ServerID,SubnetMask,LeaseTime) <- server(<IP>:67)
+// client(0.0.0.0:68) -> (Request:ClientMAC,Type=Request,ClientID,ReqIP||ClientIP,HostName,ServerID,ParamReqList) -> server(255.255.255.255:67)
+// client(255.255.255.255:68) <- (Reply:YourIP,ClientMAC,Type=ACK,ServerID,SubnetMask,LeaseTime) <- server(<IP>:67)
 func (s *v4Server) packetHandler(conn net.PacketConn, peer net.Addr, req *dhcpv4.DHCPv4) {
 	log.Debug("DHCPv4: received message: %s", req.Summary())
 

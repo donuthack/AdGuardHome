@@ -98,13 +98,8 @@ func (s *v6Server) FindMACbyIP(ip net.IP) net.HardwareAddr {
 	s.leasesLock.Lock()
 	defer s.leasesLock.Unlock()
 
-	ip4 := ip.To4()
-	if ip4 == nil {
-		return nil
-	}
-
 	for _, l := range s.leases {
-		if l.IP.Equal(ip4) {
+		if l.IP.Equal(ip) {
 			unix := l.Expiry.Unix()
 			if unix > now || unix == leaseExpireStatic {
 				return l.HWAddr
@@ -290,6 +285,15 @@ func (s *v6Server) reserveLease(mac net.HardwareAddr) *Lease {
 	return &l
 }
 
+func (s *v6Server) commitDynamicLease(l *Lease) {
+	l.Expiry = time.Now().Add(s.conf.leaseTime)
+
+	s.leasesLock.Lock()
+	s.conf.notify(LeaseChangedDBStore)
+	s.leasesLock.Unlock()
+	s.conf.notify(LeaseChangedAdded)
+}
+
 // Check Client ID
 func (s *v6Server) checkCID(msg *dhcpv6.Message) error {
 	if msg.Options.ClientID() == nil {
@@ -328,7 +332,6 @@ func (s *v6Server) checkSID(msg *dhcpv6.Message) error {
 	return nil
 }
 
-// . IAID must be equal to this server's ID
 // . IAAddress must be equal to the lease's IP
 func (s *v6Server) checkIA(msg *dhcpv6.Message, lease *Lease) error {
 	switch msg.Type() {
@@ -340,10 +343,6 @@ func (s *v6Server) checkIA(msg *dhcpv6.Message, lease *Lease) error {
 		oia := msg.Options.OneIANA()
 		if oia == nil {
 			return fmt.Errorf("no IANA option in %s", msg.Type().String())
-		}
-
-		if !bytes.Equal(oia.IaId[:], []byte(valueIAID)) {
-			return fmt.Errorf("invalid IANA.ID value in %s", msg.Type().String())
 		}
 
 		oiaAddr := oia.Options.OneAddress()
@@ -374,13 +373,7 @@ func (s *v6Server) commitLease(msg *dhcpv6.Message, lease *Lease) time.Duration 
 		dhcpv6.MessageTypeRebind:
 
 		if lease.Expiry.Unix() != leaseExpireStatic {
-
-			lease.Expiry = time.Now().Add(s.conf.leaseTime)
-
-			s.leasesLock.Lock()
-			s.conf.notify(LeaseChangedDBStore)
-			s.leasesLock.Unlock()
-			s.conf.notify(LeaseChangedAdded)
+			s.commitDynamicLease(lease)
 		}
 	}
 	return lifetime
@@ -405,8 +398,6 @@ func (s *v6Server) process(msg *dhcpv6.Message, req dhcpv6.DHCPv6, resp dhcpv6.D
 		log.Debug("DHCPv6: dhcpv6.ExtractMAC: %s", err)
 		return false
 	}
-
-	// lock
 
 	lease := s.findLease(mac)
 	if lease == nil {
@@ -433,8 +424,16 @@ func (s *v6Server) process(msg *dhcpv6.Message, req dhcpv6.DHCPv6, resp dhcpv6.D
 
 	lifetime := s.commitLease(msg, lease)
 
-	oia := &dhcpv6.OptIANA{}
-	copy(oia.IaId[:], []byte(valueIAID))
+	oia := &dhcpv6.OptIANA{
+		T1: lifetime / 2,
+		T2: time.Duration(float32(lifetime) / 1.5),
+	}
+	roia := msg.Options.OneIANA()
+	if roia != nil {
+		copy(oia.IaId[:], roia.IaId[:])
+	} else {
+		copy(oia.IaId[:], []byte(valueIAID))
+	}
 	oiaAddr := &dhcpv6.OptIAAddress{
 		IPv6Addr:          lease.IP,
 		PreferredLifetime: lifetime,
@@ -448,6 +447,16 @@ func (s *v6Server) process(msg *dhcpv6.Message, req dhcpv6.DHCPv6, resp dhcpv6.D
 	if msg.IsOptionRequested(dhcpv6.OptionDNSRecursiveNameServer) {
 		resp.UpdateOption(dhcpv6.OptDNS(s.conf.dnsIPAddrs...))
 	}
+
+	fqdn := msg.GetOneOption(dhcpv6.OptionFQDN)
+	if fqdn != nil {
+		resp.AddOption(fqdn)
+	}
+
+	resp.AddOption(&dhcpv6.OptStatusCode{
+		StatusCode:    iana.StatusSuccess,
+		StatusMessage: "success",
+	})
 	return true
 }
 
@@ -570,6 +579,7 @@ func (s *v6Server) Start() error {
 		Type:          dhcpv6.DUID_LLT,
 		HwType:        iana.HWTypeEthernet,
 		LinkLayerAddr: iface.HardwareAddr,
+		Time:          dhcpv6.GetTime(),
 	}
 
 	laddr := &net.UDPAddr{
