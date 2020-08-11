@@ -672,3 +672,63 @@ export const processContent = (content) => (Array.isArray(content)
     ? content.filter(([, value]) => value).reduce((acc, val) => acc.concat(val), [])
     : content
 );
+
+/**
+ * @param item
+ * @returns {[IPv4|IPv6, 33|129]}
+ */
+const getParsedIpWithPrefixLength = (ip) => {
+    const MAX_PREFIX_LENGTH_V4 = 32;
+    const MAX_PREFIX_LENGTH_V6 = 128;
+
+    const parsedIp = ipaddr.parse(ip);
+    const prefixLength = parsedIp.kind() === 'ipv4' ? MAX_PREFIX_LENGTH_V4 : MAX_PREFIX_LENGTH_V6;
+
+    // Increment prefix length to always put IP after CIDR, e.g. 127.0.0.1/32, 127.0.0.1
+    return [parsedIp, prefixLength + 1];
+};
+
+/**
+ * Helper function for IP and CIDR comparison (supports both v4 and v6)
+ * @param item - ip or cidr
+ * @returns {number[]}
+ */
+const getAddressesComparisonBytes = (item) => {
+    const [parsedIp, cidr] = ipaddr.isValid(item)
+        ? getParsedIpWithPrefixLength(item) : ipaddr.parseCIDR(item);
+
+    const normalizedBytes = parsedIp.kind() === 'ipv4'
+        ? parsedIp.toIPv4MappedAddress().parts
+        : parsedIp.parts;
+
+    return normalizedBytes.concat(cidr);
+};
+
+/**
+ * Compare function for IP and CIDR sort in ascending order (supports both v4 and v6)
+ * @param a
+ * @param b
+ * @returns {number} -1 | 0 | 1
+ */
+export const sortIp = (a, b) => {
+    try {
+        const comparisonBytesA = getAddressesComparisonBytes(a);
+        const comparisonBytesB = getAddressesComparisonBytes(b);
+
+        for (let i = 0; i < comparisonBytesA.length; i += 1) {
+            const byteA = comparisonBytesA[i];
+            const byteB = comparisonBytesB[i];
+
+            if (byteA === byteB) {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+            return byteA > byteB ? 1 : -1;
+        }
+
+        return 0;
+    } catch (e) {
+        console.error(e);
+        return 0;
+    }
+};
