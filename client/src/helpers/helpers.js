@@ -674,7 +674,7 @@ export const processContent = (content) => (Array.isArray(content)
 );
 
 /**
- * @param item
+ * @param ip
  * @returns {[IPv4|IPv6, 33|129]}
  */
 const getParsedIpWithPrefixLength = (ip) => {

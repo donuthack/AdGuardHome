@@ -1,7 +1,7 @@
 import { getIpMatchListStatus, sortIp } from '../helpers/helpers';
 import { IP_MATCH_LIST_STATUS } from '../helpers/constants';
 
-describe.skip('getIpMatchListStatus', () => {
+describe('getIpMatchListStatus', () => {
     describe('IPv4', () => {
         test('should return EXACT on find the exact ip match', () => {
             const list = `127.0.0.2
